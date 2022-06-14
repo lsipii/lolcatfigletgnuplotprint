@@ -13,8 +13,8 @@ from utils.types import PrinterAttachment
 @singleton
 class LolcatFigletPrinter:
     def __init__(self):
-        self.shell_apps = self.___initiailize_shell_apps()
-        self.printer = CommandlinePrinter()
+        self.___shell_apps = self.___initiailize_shell_apps()
+        self.___printer = CommandlinePrinter()
 
     def print(
         self,
@@ -23,11 +23,16 @@ class LolcatFigletPrinter:
         description_text: str = None,
         attachements: List[PrinterAttachment] = [],
         priority: int = None,
-    ):
+        output_as_return_value: bool = False,
+    ) -> str:
+
+        # Init
+        self.___printer.set_output_to_buffer_mode(output_as_return_value)
+
         #
         # Clear previous view
         #
-        self.printer.clear_screen()
+        self.___printer.clear_screen()
 
         #
         # Print heading text
@@ -47,44 +52,46 @@ class LolcatFigletPrinter:
         # Print the message
         #
         if message is not None:
-            self.printer.print(message)
+            self.___printer.print(message)
 
         # Print some new lines for end margin
-        self.printer.print("\n" * 2)
+        self.___printer.print("\n" * 2)
+
+        return self.___printer.flush_buffer()
 
     def ___print_heading_text(self, heading_text: str = None, priority: int = None):
         if heading_text is not None:
 
             # Print some new lines for top margin
-            self.printer.print("\n" * 6)
+            self.___printer.print("\n" * 6)
 
-            if "figlet" in self.shell_apps:
+            if "figlet" in self.___shell_apps:
                 heading_output = sh.figlet("-ctf", "slant", heading_text)
             else:
                 heading_output = str(heading_text).center(50)
 
-            if "lolcat" in self.shell_apps:
+            if "lolcat" in self.___shell_apps:
                 heading_output = sh.lolcat(heading_output)
 
             #
             # Print the lolcat figlet message
             #
-            if "lolcat" not in self.shell_apps:
+            if "lolcat" not in self.___shell_apps:
                 output_text = str(heading_output)
                 if priority is None or priority > 0:
                     figlet_colours = ["aqua", "green", "magenta", "yellow"]
                     figlet_colour = random.choice(figlet_colours)
                 else:
                     figlet_colour = "grey"
-                self.printer.print(text=output_text, inline=False, colour=figlet_colour)
+                self.___printer.print(text=output_text, inline=False, colour=figlet_colour)
             else:
-                self.printer.print(heading_output)
+                self.___printer.print(heading_output)
 
     def ___print_description_text(self, description_text: str = None):
         if description_text is not None:
             description_output = description_text.center(50)
-            self.printer.print(text=description_output, inline=True, colour="white")
-            self.printer.print("\n")  # 2x new line
+            self.___printer.print(text=description_output, inline=True, colour="white")
+            self.___printer.print("\n")  # 2x new line
 
     def ___print_attachments(self, attachements: List[PrinterAttachment] = []):
         if len(attachements) > 0:
@@ -122,12 +129,12 @@ class LolcatFigletPrinter:
                     if messageChunkIndex == 0:
                         # Print sender
                         # .. some indent
-                        self.printer.print(indent, end=" ")
+                        self.___printer.print(indent, end=" ")
                         # Coloured message part
                         if "senderName" in responseMessage:
-                            self.printer.print(text=responseMessage["senderName"] + " ", inline=True, colour="aqua")
+                            self.___printer.print(text=responseMessage["senderName"] + " ", inline=True, colour="aqua")
                         # Coloured message part
-                        self.printer.print(
+                        self.___printer.print(
                             text=messagePart,
                             inline=False,
                             colour=messageColour,
@@ -136,10 +143,10 @@ class LolcatFigletPrinter:
                         )
                     else:
                         # Coloured message part
-                        self.printer.print(text=indent + " " + messagePart, inline=False, colour=messageColour)
+                        self.___printer.print(text=indent + " " + messagePart, inline=False, colour=messageColour)
 
                 # 1x new line
-                self.printer.print("")
+                self.___printer.print("")
 
     def ___initiailize_shell_apps(self):
         shell_apps = []
@@ -162,7 +169,7 @@ if __name__ == "__main__":
         {"message": "attachment six"},
     ]
 
-    message = PlotPrinter().printPlot(
+    message = PlotPrinter().print(
         value_groups=[
             {
                 "title": "Data 1",

@@ -19,9 +19,9 @@ class PlotPrinter:
         self.___dates = {"app_startup_at": datetimeNow, "now_at": datetimeNow}
         self.___prepend_text_left = "    "
 
-    def printPlot(
-        self, value_groups: List[PlotPrinterValueGroup], width=75, height=27, output_as_return_value: bool = False
-    ):
+    def print(
+        self, value_groups: List[PlotPrinterValueGroup], width=75, height=17, output_as_return_value: bool = False
+    ) -> str:
         """
         Prints the history data as a nice xy-plot
         """
@@ -314,7 +314,7 @@ class PlotPrinter:
 
 
 if __name__ == "__main__":
-    PlotPrinter().printPlot(
+    PlotPrinter().print(
         value_groups=[
             {
                 "title": "Example",
