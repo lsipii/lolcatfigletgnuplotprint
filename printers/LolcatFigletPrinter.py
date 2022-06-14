@@ -15,7 +15,7 @@ class LolcatFigletPrinter:
 
     def print(
         self,
-        message: str,
+        message: str = None,
         heading_text: str = None,
         description_text: str = None,
         attachements: List[PrinterAttachment] = [],
@@ -91,7 +91,7 @@ class LolcatFigletPrinter:
             self.___printer.print("\n")  # 2x new line
 
     def ___print_attachments(self, attachements: List[PrinterAttachment] = []):
-        if len(attachements) > 0:
+        if isinstance(attachements, list) and len(attachements) > 0:
 
             # The first and new messages colour
             firstMessageColour = "green"

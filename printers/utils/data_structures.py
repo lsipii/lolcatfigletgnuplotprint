@@ -1,3 +1,6 @@
+from printers.utils.strings import snakefy_key
+
+
 def singleton(class_):
     """
     Class decorator for singleton pattern
@@ -22,3 +25,16 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+
+def snakefy_dictionary_keys(input_dict: dict) -> dict:
+    """
+    transform all dictionary keys to snaky form:
+        - CamelCase --> camel_case
+        - camelCase --> camel_case
+        - camel-case --> camel_case
+    """
+    output_dict = {}
+    for attr in input_dict:
+        output_dict[snakefy_key(attr)] = input_dict[attr]
+    return output_dict

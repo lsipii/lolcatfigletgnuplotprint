@@ -21,3 +21,17 @@ def ensurePostfix(text: str, postfix: str) -> str:
     if not text.endswith(postfix):
         return f"{text}{postfix}"
     return text
+
+
+def snakefy_key(attr: str) -> str:
+    """
+    transform a key to snaky form:
+        - CamelCase --> camel_case
+        - camelCase --> camel_case
+        - camel-case --> camel_case
+        - camel_case == camel_case
+    """
+    from functools import reduce
+
+    attr = attr.replace("-", "_")
+    return reduce(lambda x, y: x + ("_" if y.isupper() else "") + y, str).lower()
