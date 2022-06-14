@@ -1,10 +1,9 @@
 from typing import List
 
 from printers.utils.dates import get_datetime_now
-
-from .LolcatFigletPrinter import LolcatFigletPrinter
-from .PlotPrinter import PlotPrinter
-from .utils.types import PlotPrinterValueGroup, PrinterAttachment
+from printers.LolcatFigletPrinter import LolcatFigletPrinter
+from printers.PlotPrinter import PlotPrinter
+from printers.utils.types import PlotPrinterValueGroup, PrinterAttachment
 
 
 def plot_print(

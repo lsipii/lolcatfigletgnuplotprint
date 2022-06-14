@@ -1,4 +1,4 @@
-# build: docker build -t lolcatfigletprint -f app.dockerfile .
+# build: docker build -t lolcatfigletprint -f lolcatfigletprint.dockerfile .
 # run: docker run -it --rm lolcatfigletprint
 FROM python:3.10
 WORKDIR /usr/src/app
