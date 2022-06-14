@@ -46,7 +46,7 @@ def ___parse_json_extra_arguments(attachements: str = None, plot_value_groups: s
 
 
 @click.command()
-@click.option("--print-example-output", is_flag=True, help="Print example output")
+@click.option("--print-example-output", "--example", is_flag=True, help="Print example output")
 @click.option("--content", help="Content text", default=None)
 @click.option("--heading-text", "--heading", help="Large heading text", default=None)
 @click.option("--description-text", "--description", help="Paragraph below the heading", default=None)
