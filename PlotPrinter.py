@@ -6,6 +6,7 @@ from utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_da
 from utils.runtime import get_client_public_ip_address
 
 from utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
+import math
 
 
 class PlotPrinter:
@@ -19,7 +20,7 @@ class PlotPrinter:
         self.___prepend_text_left = "    "
 
     def printPlot(
-        self, value_groups: List[PlotPrinterValueGroup], width=75, height=17, output_as_return_value: bool = False
+        self, value_groups: List[PlotPrinterValueGroup], width=75, height=27, output_as_return_value: bool = False
     ):
         """
         Prints the history data as a nice xy-plot
@@ -37,11 +38,11 @@ class PlotPrinter:
         self.___scopeSeconds = max((maxValuesLen * self.___samplingInterval) - self.___samplingInterval, 0)
 
         # Plot
-        extraArgs = []
-        plotCmd = "plot '-' with linespoints"
+        plot_command_parts = []
+        plot_data_parts = []
         fig = tpl.figure(padding=1)
 
-        for i, group in enumerate(value_groups):
+        for group in value_groups:
             title = group["title"]
             x = list(range(0, len(group["values"])))  # Todo: plot datetimes
             y = list(map(lambda v: v["value"], group["values"]))
@@ -49,18 +50,16 @@ class PlotPrinter:
             gnuplot_input = []
             for xx, yy in zip(x, y):
                 gnuplot_input.append(f"{xx:e} {yy:e}")
-            points = "\n".join(gnuplot_input)
 
-            if i == 0:
-                command = f"plot '-' title '{title}' with linespoints \n{points}"
-                if len(value_groups) > 1:
-                    command += ", \\"
-                extraArgs.append(command)
-            else:
-                extraArgs.append(f"'-' title '{title}' with linespoints \n{points}")
+            plot_command_parts.append(f"'-' with linespoints title '{title}'")
+            plot_data_parts.append("\n".join(gnuplot_input) + "\ne")
             compinedValues.extend(group["values"])
 
-        extraArgs.append("e")
+        # Form the gnuplot command string
+        extraArgs = []
+        extraArgs.append(f"plot {', '.join(plot_command_parts)}")
+        extraArgs.extend(plot_data_parts)
+
         fig.plot(
             [],
             [],
@@ -283,7 +282,7 @@ class PlotPrinter:
                     if value < minimum:
                         minimum = value
                         min_stamp = v["timestamp"]
-                average = float(summarum / count)
+                average = math.ceil(float(summarum / count))
 
             return {
                 "max": maximum,
