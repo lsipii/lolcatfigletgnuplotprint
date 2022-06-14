@@ -14,19 +14,19 @@ class PlotPrinter:
     ___samplingInterval: int
     ___ip_address = None
     ___dates = {"now_at": None, "app_startup_at": None}
-    ___prepend_text_left = "	"
+    ___prepend_text_left = "    "
 
     def __init__(self):
         self.___samplingInterval = 30
         self.___ip_address = get_client_public_ip_address()
-        self.___dates["now_at"] = get_datetime_now()
         self.___dates["app_startup_at"] = get_datetime_now()
+        self.___dates["now_at"] = get_datetime_now()
 
     """
     Prints the history data as a nice xy-plot
     """
 
-    def printPlot(self, values: List[PlotUnit], width=53, height=15, output_as_return_value: bool = False):
+    def printPlot(self, values: List[PlotUnit], width=75, height=15, output_as_return_value: bool = False):
 
         self.___printer.set_output_to_buffer_mode(output_as_return_value)
 
@@ -194,7 +194,7 @@ class PlotPrinter:
         footerThirdLineText = self.___prepend_text_left + "  "
 
         footerThirdLineText += "["  # Container start
-        footerThirdLineText += "Tracker data starting time: "
+        footerThirdLineText += "Tracker start time: "
         footerThirdLineText += datetime_to_text(self.___dates["app_startup_at"]) + " "
 
         # the time the app has been running
