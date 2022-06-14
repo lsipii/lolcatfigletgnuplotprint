@@ -34,4 +34,4 @@ def snakefy_key(attr: str) -> str:
     from functools import reduce
 
     attr = attr.replace("-", "_")
-    return reduce(lambda x, y: x + ("_" if y.isupper() else "") + y, str).lower()
+    return reduce(lambda x, y: x + ("_" if y.isupper() else "") + y, attr).lower()

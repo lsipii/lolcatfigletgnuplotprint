@@ -1,3 +1,4 @@
+import sys
 import json
 import click
 
@@ -8,6 +9,7 @@ from printers.utils.data_structures import snakefy_dictionary_keys
 def ___parse_json_input(json_input: str):
     input_data = json.loads(json_input)
     input_data = snakefy_dictionary_keys(input_data)
+
     content = input_data["content"] if "content" in input_data else None
     heading_text = input_data["heading_text"] if "heading_text" in input_data else None
     description_text = input_data["description_text"] if "description_text" in input_data else None

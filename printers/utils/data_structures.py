@@ -35,6 +35,6 @@ def snakefy_dictionary_keys(input_dict: dict) -> dict:
         - camel-case --> camel_case
     """
     output_dict = {}
-    for attr in input_dict:
-        output_dict[snakefy_key(attr)] = input_dict[attr]
+    for value, attr in input_dict.items():
+        output_dict[snakefy_key(attr)] = value
     return output_dict
