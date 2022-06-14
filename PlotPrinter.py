@@ -9,18 +9,14 @@ from utils.types import PlotScopeStats, PlotUnit, PlotStat
 
 
 class PlotPrinter:
-    ___printer = CommandlinePrinter()
-    ___scopeSeconds: int
-    ___samplingInterval: int
-    ___ip_address = None
-    ___dates = {"now_at": None, "app_startup_at": None}
-    ___prepend_text_left = "    "
-
     def __init__(self):
+        datetimeNow = get_datetime_now()
+        self.___printer = CommandlinePrinter()
+        self.___scopeSeconds = 0
         self.___samplingInterval = 30
         self.___ip_address = get_client_public_ip_address()
-        self.___dates["app_startup_at"] = get_datetime_now()
-        self.___dates["now_at"] = get_datetime_now()
+        self.___dates = {"app_startup_at": datetimeNow, "now_at": datetimeNow}
+        self.___prepend_text_left = "    "
 
     """
     Prints the history data as a nice xy-plot
@@ -285,3 +281,13 @@ class PlotPrinter:
                 values,
             )
         )
+
+
+if __name__ == "__main__":
+    PlotPrinter().printPlot(
+        values=[
+            {"value": 1, "timestamp": 1655146582},
+            {"value": 5, "timestamp": 1655146583},
+            {"value": 9, "timestamp": 1655146584},
+        ]
+    )
