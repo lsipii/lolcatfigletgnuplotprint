@@ -9,7 +9,6 @@ from printers.utils.data_structures import snakefy_dictionary_keys
 def ___parse_json_input(json_input: str):
     input_data = json.loads(json_input)
     input_data = snakefy_dictionary_keys(input_data)
-
     content = input_data["content"] if "content" in input_data else None
     heading_text = input_data["heading_text"] if "heading_text" in input_data else None
     description_text = input_data["description_text"] if "description_text" in input_data else None
@@ -65,12 +64,19 @@ def _cli(
     json_input: str = None,
 ):
     if json_input is not None:
-        _content, _heading_text, _description_text, _attachements, _plot_value_groups = ___parse_json_input(json_input)
-        content = _content if _content is not None else content
-        heading_text = _heading_text if _heading_text is not None else heading_text
-        description_text = _description_text if _description_text is not None else description_text
-        attachements = _attachements if _attachements is not None else attachements
-        plot_value_groups = _plot_value_groups if _plot_value_groups is not None else plot_value_groups
+        try:
+            _content, _heading_text, _description_text, _attachements, _plot_value_groups = ___parse_json_input(
+                json_input
+            )
+
+            content = _content if _content is not None else content
+            heading_text = _heading_text if _heading_text is not None else heading_text
+            description_text = _description_text if _description_text is not None else description_text
+            attachements = _attachements if _attachements is not None else attachements
+            plot_value_groups = _plot_value_groups if _plot_value_groups is not None else plot_value_groups
+        except Exception as err:
+            print("Bad JSON received:", err)
+            raise err
 
     if print_example_output or content is None and heading_text is None and description_text is None:
         print_example()
