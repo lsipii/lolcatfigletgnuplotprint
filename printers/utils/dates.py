@@ -10,10 +10,21 @@ def get_datetime_now():
     return datetime.datetime.now()
 
 
-def parse_past_date_text(pasteDateText: str) -> str:
+def format_datetime(dt, include_time: bool = True, include_ms: bool = False) -> str:
+    output = str(dt.isoformat())
+
+    # Outputter
+    if not include_time:
+        return output.split("T")[0]
+    elif not include_ms:
+        return output.split(".")[0]
+    return output
+
+
+def parse_past_date_text(pasteDateText: str, include_time: bool = True, include_ms: bool = False) -> str:
     """
     Input: 3 months ago
-    Output: 2020-03-29 (ISO Date string)
+    Output: 2022-06-12T16:33:23.881970
     @see: https://stackoverflow.com/a/43139770
     """
     dateTextParts = pasteDateText.split()
@@ -22,29 +33,33 @@ def parse_past_date_text(pasteDateText: str) -> str:
     if partsLength < 2:
         raise Exception(f"Invalid date text pattern: {pasteDateText}")
 
+    # Special amount indicators
+    if dateTextParts[0] in ["last", "prev", "previous"]:
+        dateTextParts[0] = 1
+
     if partsLength == 1 and dateTextParts[0].lower() == "today":
-        return str(datetime.datetime.now().isoformat())
+        return format_datetime(datetime.datetime.now())
     elif partsLength == 1 and dateTextParts[0].lower() == "yesterday":
         date = datetime.datetime.now() - relativedelta(days=1)
-        return str(date.isoformat())
+        return format_datetime(date)
     elif dateTextParts[1].lower() in ["sec", "secs", "second", "seconds", "s"]:
         date = datetime.datetime.now() - relativedelta(hours=int(dateTextParts[0]))
-        return str(date.date().isoformat())
+        return format_datetime(date.date())
     elif dateTextParts[1].lower() in ["hour", "hours", "hr", "hrs", "h"]:
         date = datetime.datetime.now() - relativedelta(hours=int(dateTextParts[0]))
-        return str(date.date().isoformat())
+        return format_datetime(date.date())
     elif dateTextParts[1].lower() in ["day", "days", "d"]:
         date = datetime.datetime.now() - relativedelta(days=int(dateTextParts[0]))
-        return str(date.isoformat())
+        return format_datetime(date)
     elif dateTextParts[1].lower() in ["wk", "wks", "week", "weeks", "w"]:
         date = datetime.datetime.now() - relativedelta(weeks=int(dateTextParts[0]))
-        return str(date.isoformat())
+        return format_datetime(date)
     elif dateTextParts[1].lower() in ["mon", "mons", "month", "months", "m"]:
         date = datetime.datetime.now() - relativedelta(months=int(dateTextParts[0]))
-        return str(date.isoformat())
+        return format_datetime(date)
     elif dateTextParts[1].lower() in ["yrs", "yr", "years", "year", "y"]:
         date = datetime.datetime.now() - relativedelta(years=int(dateTextParts[0]))
-        return str(date.isoformat())
+        return format_datetime(date)
     else:
         raise Exception(f"Invalid date text: {pasteDateText}")
 

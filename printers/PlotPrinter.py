@@ -1,12 +1,12 @@
 from typing import List
 import termplotlib as tpl
 import datetime
-from utils.CommandlinePrinter import CommandlinePrinter
-from utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_datetime_now, parse_past_date_text
-from utils.runtime import get_client_public_ip_address
-
-from utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
 import math
+
+from .utils.CommandlinePrinter import CommandlinePrinter
+from .utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_datetime_now, parse_past_date_text
+from .utils.runtime import get_client_public_ip_address
+from .utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
 
 
 class PlotPrinter:
@@ -44,7 +44,7 @@ class PlotPrinter:
 
         for group in value_groups:
             title = group["title"]
-            x = list(range(0, len(group["values"])))  # Todo: plot datetimes
+            x = list(range(0, len(group["values"])))  # @TODO: plot timestamps
             y = list(map(lambda v: v["value"], group["values"]))
 
             gnuplot_input = []
@@ -311,18 +311,3 @@ class PlotPrinter:
                 values,
             )
         )
-
-
-if __name__ == "__main__":
-    PlotPrinter().print(
-        value_groups=[
-            {
-                "title": "Example",
-                "values": [
-                    {"value": 1, "timestamp": 1655146582},
-                    {"value": 5, "timestamp": 1655146583},
-                    {"value": 9, "timestamp": 1655146584},
-                ],
-            }
-        ]
-    )

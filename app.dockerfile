@@ -19,4 +19,4 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 # App
 COPY . .
 
-ENTRYPOINT [ "python",  "/usr/src/app/LolcatFigletPrinter.py"]
+CMD [ "python",  "-m", "printers"]

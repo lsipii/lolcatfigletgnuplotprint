@@ -2,15 +2,12 @@ from typing import List
 import sh
 import random
 from shutil import which
-from PlotPrinter import PlotPrinter
 
-from utils.CommandlinePrinter import CommandlinePrinter
-from utils.data_structures import singleton
-from utils.strings import chunk_string_by_length
-from utils.types import PrinterAttachment
+from .utils.CommandlinePrinter import CommandlinePrinter
+from .utils.strings import chunk_string_by_length
+from .utils.types import PrinterAttachment
 
 
-@singleton
 class LolcatFigletPrinter:
     def __init__(self):
         self.___shell_apps = self.___initiailize_shell_apps()
@@ -155,45 +152,3 @@ class LolcatFigletPrinter:
             if app_path is not None:
                 shell_apps.append(app_name)
         return shell_apps
-
-
-if __name__ == "__main__":
-    heading_text = "Heading text"
-    description_text = "Description text"
-    attachements = [
-        {"message": "attachment one"},
-        {"message": "attachment two"},
-        {"message": "attachment three, a priority message", "isPriority": True},
-        {"message": "attachment four"},
-        {"message": "attachment five"},
-        {"message": "attachment six"},
-    ]
-
-    message = PlotPrinter().print(
-        value_groups=[
-            {
-                "title": "Data 1",
-                "values": [
-                    {"value": 1, "timestamp": 1655146582},
-                    {"value": 5, "timestamp": 1655146583},
-                    {"value": 2, "timestamp": 1655146584},
-                ],
-            },
-            {
-                "title": "Data 2",
-                "values": [
-                    {"value": 7, "timestamp": 1655146582},
-                    {"value": 3, "timestamp": 1655146583},
-                    {"value": 5, "timestamp": 1655146584},
-                ],
-            },
-        ],
-        output_as_return_value=True,
-    )
-
-    LolcatFigletPrinter().print(
-        message=message,
-        heading_text=heading_text,
-        description_text=description_text,
-        attachements=attachements,
-    )
