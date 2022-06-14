@@ -163,10 +163,23 @@ if __name__ == "__main__":
     ]
 
     message = PlotPrinter().printPlot(
-        values=[
-            {"value": 1, "timestamp": 1655146582},
-            {"value": 5, "timestamp": 1655146583},
-            {"value": 9, "timestamp": 1655146584},
+        value_groups=[
+            {
+                "title": "Data 1",
+                "values": [
+                    {"value": 1, "timestamp": 1655146582},
+                    {"value": 5, "timestamp": 1655146583},
+                    {"value": 9, "timestamp": 1655146584},
+                ],
+            },
+            {
+                "title": "Data 2",
+                "values": [
+                    {"value": 7, "timestamp": 1655146582},
+                    {"value": 3, "timestamp": 1655146583},
+                    {"value": 5, "timestamp": 1655146584},
+                ],
+            },
         ],
         output_as_return_value=True,
     )

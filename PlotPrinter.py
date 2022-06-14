@@ -5,7 +5,7 @@ from utils.CommandlinePrinter import CommandlinePrinter
 from utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_datetime_now, parse_past_date_text
 from utils.runtime import get_client_public_ip_address
 
-from utils.types import PlotScopeStats, PlotUnit, PlotStat
+from utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
 
 
 class PlotPrinter:
@@ -18,35 +18,51 @@ class PlotPrinter:
         self.___dates = {"app_startup_at": datetimeNow, "now_at": datetimeNow}
         self.___prepend_text_left = "    "
 
-    """
-    Prints the history data as a nice xy-plot
-    """
+    def printPlot(
+        self, value_groups: List[PlotPrinterValueGroup], width=75, height=17, output_as_return_value: bool = False
+    ):
+        """
+        Prints the history data as a nice xy-plot
+        """
 
-    def printPlot(self, values: List[PlotUnit], width=75, height=15, output_as_return_value: bool = False):
-
+        # Init
         self.___printer.set_output_to_buffer_mode(output_as_return_value)
+        compinedValues = []
 
         # Set scope length
-        self.___scopeSeconds = max((len(values) * self.___samplingInterval) - self.___samplingInterval, 0)
-
-        fig = tpl.figure()
-        x = list(range(0, len(values)))  # Todo: plot datetimes
-        y = list(map(lambda v: v["value"], values))
-
-        extraArgs = []
-        extraArgs.append("unset key")
-        plotCmd = "plot '-' with linespoints"
+        maxValuesLen = 0
+        for group in value_groups:
+            if len(group["values"]) > maxValuesLen:
+                maxValuesLen = len(group["values"])
+        self.___scopeSeconds = max((maxValuesLen * self.___samplingInterval) - self.___samplingInterval, 0)
 
         # Plot
-        fig.plot(x, y, width=width, height=height, extra_gnuplot_arguments=extraArgs, plot_command=plotCmd)
-        plotDump = fig.get_string()
+        extraArgs = []
+        plotCmd = "plot '-' with linespoints"
+        fig = tpl.figure(padding=1)
 
+        for group in value_groups:
+            x = list(range(0, len(group["values"])))  # Todo: plot datetimes
+            y = list(map(lambda v: v["value"], group["values"]))
+            fig.plot(
+                x,
+                y,
+                label=group["title"],
+                width=width,
+                height=height,
+                extra_gnuplot_arguments=extraArgs,
+                plot_command=plotCmd,
+            )
+            compinedValues.extend(group["values"])
+
+        # Draw
+        plotDump = fig.get_string()
         plotDump = plotDump.replace("*", "-").replace("A", "*")
         plotDump = plotDump.replace("\n", "\n" + " ")
         self.___printer.print_by_hilighting_char(plotDump, "*", "aqua", "grey")
 
         # Stats
-        stats = self.___get_calculated_plot_stats(values)
+        stats = self.___get_calculated_plot_stats(compinedValues)
         self.___printFooterStats(stats)
         self.___printAdvFooterStatsLine1(stats)
         self.___printAdvFooterStatsLine2(stats)
@@ -285,9 +301,14 @@ class PlotPrinter:
 
 if __name__ == "__main__":
     PlotPrinter().printPlot(
-        values=[
-            {"value": 1, "timestamp": 1655146582},
-            {"value": 5, "timestamp": 1655146583},
-            {"value": 9, "timestamp": 1655146584},
+        value_groups=[
+            {
+                "title": "Example",
+                "values": [
+                    {"value": 1, "timestamp": 1655146582},
+                    {"value": 5, "timestamp": 1655146583},
+                    {"value": 9, "timestamp": 1655146584},
+                ],
+            }
         ]
     )

@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing import List, Optional, TypedDict
 
 
 class PrinterAttachment(TypedDict):
@@ -28,3 +28,8 @@ class PlotScopeStats(TypedDict):
     week: PlotStat
     month: PlotStat
     year: PlotStat
+
+
+class PlotPrinterValueGroup(TypedDict):
+    title: str
+    values: List[PlotUnit]
