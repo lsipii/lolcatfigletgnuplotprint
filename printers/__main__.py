@@ -1,5 +1,7 @@
 from typing import List
 
+from printers.utils.dates import get_datetime_now
+
 from .LolcatFigletPrinter import LolcatFigletPrinter
 from .PlotPrinter import PlotPrinter
 from .utils.types import PlotPrinterValueGroup, PrinterAttachment
@@ -47,22 +49,24 @@ if __name__ == "__main__":
         {"message": "attachment six"},
     ]
 
+    timestampNow = get_datetime_now().timestamp()
+
     message = plot_print(
         value_groups=[
             {
                 "title": "Data 1",
                 "values": [
-                    {"value": 1, "timestamp": 1655146582},
-                    {"value": 5, "timestamp": 1655146583},
-                    {"value": 2, "timestamp": 1655146584},
+                    {"value": 1, "timestamp": timestampNow},
+                    {"value": 5, "timestamp": timestampNow + 5},
+                    {"value": 2, "timestamp": timestampNow + 15},
                 ],
             },
             {
                 "title": "Data 2",
                 "values": [
-                    {"value": 7, "timestamp": 1655146582},
-                    {"value": 3, "timestamp": 1655146583},
-                    {"value": 5, "timestamp": 1655146584},
+                    {"value": 7, "timestamp": timestampNow},
+                    {"value": 3, "timestamp": timestampNow + 5},
+                    {"value": 5, "timestamp": timestampNow + 15},
                 ],
             },
         ],

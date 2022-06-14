@@ -8,6 +8,7 @@ class TestDateUtils(unittest.TestCase):
         import datetime
 
         today = datetime.datetime.now()
+        self.assertEqual(parse_past_date_text("1 hour"), format_datetime((today - datetime.timedelta(hours=1))))
         self.assertEqual(parse_past_date_text("last week"), format_datetime((today - datetime.timedelta(weeks=1))))
         self.assertEqual(parse_past_date_text("2 days ago"), format_datetime((today - datetime.timedelta(days=2))))
         self.assertEqual(parse_past_date_text("2 months ago"), format_datetime((today - relativedelta(months=2))))
