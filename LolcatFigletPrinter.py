@@ -169,7 +169,7 @@ if __name__ == "__main__":
                 "values": [
                     {"value": 1, "timestamp": 1655146582},
                     {"value": 5, "timestamp": 1655146583},
-                    {"value": 9, "timestamp": 1655146584},
+                    {"value": 2, "timestamp": 1655146584},
                 ],
             },
             {

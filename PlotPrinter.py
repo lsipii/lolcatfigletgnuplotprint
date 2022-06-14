@@ -41,19 +41,34 @@ class PlotPrinter:
         plotCmd = "plot '-' with linespoints"
         fig = tpl.figure(padding=1)
 
-        for group in value_groups:
+        for i, group in enumerate(value_groups):
+            title = group["title"]
             x = list(range(0, len(group["values"])))  # Todo: plot datetimes
             y = list(map(lambda v: v["value"], group["values"]))
-            fig.plot(
-                x,
-                y,
-                label=group["title"],
-                width=width,
-                height=height,
-                extra_gnuplot_arguments=extraArgs,
-                plot_command=plotCmd,
-            )
+
+            gnuplot_input = []
+            for xx, yy in zip(x, y):
+                gnuplot_input.append(f"{xx:e} {yy:e}")
+            points = "\n".join(gnuplot_input)
+
+            if i == 0:
+                command = f"plot '-' title '{title}' with linespoints \n{points}"
+                if len(value_groups) > 1:
+                    command += ", \\"
+                extraArgs.append(command)
+            else:
+                extraArgs.append(f"'-' title '{title}' with linespoints \n{points}")
             compinedValues.extend(group["values"])
+
+        extraArgs.append("e")
+        fig.plot(
+            [],
+            [],
+            width=width,
+            height=height,
+            extra_gnuplot_arguments=extraArgs,
+            plot_command="",
+        )
 
         # Draw
         plotDump = fig.get_string()
