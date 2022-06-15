@@ -58,17 +58,11 @@ class PlotPrinter:
         # Form the gnuplot command string
         extraArgs = []
         extraArgs.append("unset xtics")  # @TODO: plot timestamps on x-tics
+        # extraArgs.append("unset autoscale x")
         extraArgs.append(f"plot {', '.join(plot_command_parts)}")
         extraArgs.extend(plot_data_parts)
 
-        fig.plot(
-            [],
-            [],
-            width=width,
-            height=height,
-            extra_gnuplot_arguments=extraArgs,
-            plot_command="",
-        )
+        fig.plot([], [], width=width, height=height, extra_gnuplot_arguments=extraArgs, plot_command="", ticks_scale=1)
 
         # Draw
         plotDump = fig.get_string()

@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "lolcatfigletgnuplotprint"
 description = "A simple commandline output utility package for printing simple messages and linear xy-plot data with colours and style."
-version = "0.0.6"
+version = "0.0.7"
 readme = "README.md"
 authors = [{ name = "Lassi Piironen", email = "lsipii@kapsi.fi" }]
 classifiers = [
