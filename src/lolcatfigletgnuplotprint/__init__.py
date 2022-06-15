@@ -60,7 +60,7 @@ def plot_print(
 
 
 def lolcat_figlet_print(
-    message: str,
+    message: str = None,
     heading_text: str = None,
     description_text: str = None,
     attachements: List[PrinterAttachment] = [],
@@ -78,9 +78,3 @@ def lolcat_figlet_print(
         priority=priority,
         output_as_return_value=output_as_return_value,
     )
-
-
-if __name__ == "__main__":
-    from ._cli import _cli
-
-    _cli()

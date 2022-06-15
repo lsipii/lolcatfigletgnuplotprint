@@ -14,6 +14,9 @@ ENV PATH $PATH:/usr/games
 
 # App install
 COPY . .
+RUN python -m pip install pip-tools
+RUN pip-compile pyproject.toml
+RUN python -m pip install -r requirements.txt
 RUN python -m pip install -e .
 
-ENTRYPOINT [ "python",  "-m", "src.printers"]
+ENTRYPOINT [ "python",  "-m", "lolcatfigletgnuplotprint"]

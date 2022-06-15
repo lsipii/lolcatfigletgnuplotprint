@@ -1,7 +1,7 @@
 import json
 import click
 
-from .__main__ import lolcat_figlet_print, print_example
+from .__init__ import lolcat_figlet_print, print_example
 from .utils.data_structures import snakefy_dictionary_keys
 
 
