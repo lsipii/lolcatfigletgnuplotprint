@@ -2,6 +2,10 @@
 
 A simple commandline output utility package for printing simple messages and linear xy-plot data with colours and style
 
+## Requirements
+
+Relies on [lolcat](https://github.com/tehmaze/lolcat), [figlet](http://www.figlet.org/) and [gnuplot](http://www.gnuplot.info/).
+
 ## Install
 
 ```
