@@ -14,6 +14,6 @@ ENV PATH $PATH:/usr/games
 
 # App install
 COPY . .
-RUN python -m pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install -e .
 
 ENTRYPOINT [ "python",  "-m", "src.printers"]
