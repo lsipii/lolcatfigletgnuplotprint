@@ -79,9 +79,9 @@ class PlotPrinter:
         stats = self.___get_calculated_plot_stats(compinedValues)
         self.___printFooterStats(stats)
         self.___printAdvFooterStatsLine1(stats)
-        self.___printAdvFooterStatsLine2(stats)
+        # self.___printAdvFooterStatsLine2(stats)
         self.___printAdvFooterStatsLine3(stats)
-        self.___printAdvFooterStatsLine4(stats)
+        # self.___printAdvFooterStatsLine4(stats)
 
         return self.___printer.flush_buffer()
 
@@ -265,8 +265,8 @@ class PlotPrinter:
             count = len(plot_values)
             summarum = 0
             average = 0
-            minimum = 0
-            maximum = 0
+            minimum = None
+            maximum = None
             min_stamp = 0
             max_stamp = 0
 
@@ -276,17 +276,17 @@ class PlotPrinter:
                 for v in plot_values:
                     value = v["value"]
                     summarum += value
-                    if value > maximum:
+                    if maximum is None or value > maximum:
                         maximum = value
                         max_stamp = v["timestamp"]
-                    if value < minimum:
+                    if minimum is None or value < minimum:
                         minimum = value
                         min_stamp = v["timestamp"]
                 average = math.ceil(float(summarum / count))
 
             return {
-                "max": maximum,
-                "min": minimum,
+                "max": maximum if maximum is not None else 0,
+                "min": minimum if minimum is not None else 0,
                 "min_stamp": min_stamp,
                 "max_stamp": max_stamp,
                 "count": count,

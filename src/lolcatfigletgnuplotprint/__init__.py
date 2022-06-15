@@ -1,12 +1,11 @@
 from typing import List
 
-from .LolcatFigletPrinter import LolcatFigletPrinter
-from .PlotPrinter import PlotPrinter
-from .utils.dates import get_datetime_now
 from .utils.types import PlotPrinterValueGroup, PrinterAttachment
+from .utils.dates import get_datetime_now
 
 
 def print_example():
+
     heading_text = "Heading text"
     description_text = "Description text"
     attachements = [
@@ -53,6 +52,8 @@ def print_example():
 def plot_print(
     value_groups: List[PlotPrinterValueGroup], width=75, height=17, output_as_return_value: bool = False
 ) -> str:
+    from .PlotPrinter import PlotPrinter
+
     """
     Prints xy-plot
     """
@@ -67,6 +68,8 @@ def lolcat_figlet_print(
     priority: int = None,
     output_as_return_value: bool = False,
 ) -> str:
+    from .LolcatFigletPrinter import LolcatFigletPrinter
+
     """
     Prints texts with a fancy look
     """
@@ -78,3 +81,12 @@ def lolcat_figlet_print(
         priority=priority,
         output_as_return_value=output_as_return_value,
     )
+
+
+def clear_screen():
+    from .utils.CommandlinePrinter import CommandlinePrinter
+
+    """
+    Clears terminal screen
+    """
+    CommandlinePrinter().clear_screen()
