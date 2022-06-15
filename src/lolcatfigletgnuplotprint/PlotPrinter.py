@@ -44,7 +44,7 @@ class PlotPrinter:
 
         for group in value_groups:
             title = group["title"]
-            x = list(range(0, len(group["values"])))  # @TODO: plot timestamps
+            x = list(range(0, len(group["values"])))  # @TODO: plot timestamps on x-tics
             y = list(map(lambda v: v["value"], group["values"]))
 
             gnuplot_input = []
@@ -57,6 +57,7 @@ class PlotPrinter:
 
         # Form the gnuplot command string
         extraArgs = []
+        extraArgs.append("unset xtics")  # @TODO: plot timestamps on x-tics
         extraArgs.append(f"plot {', '.join(plot_command_parts)}")
         extraArgs.extend(plot_data_parts)
 
@@ -72,6 +73,8 @@ class PlotPrinter:
         # Draw
         plotDump = fig.get_string()
         plotDump = plotDump.replace("*", "-").replace("A", "*")
+        plotDump = plotDump.replace("#", "_").replace("B", "x")
+
         plotDump = plotDump.replace("\n", "\n" + " ")
         self.___printer.print_by_hilighting_char(plotDump, "*", "aqua", "grey")
 
