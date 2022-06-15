@@ -6,9 +6,10 @@ A simple commandline output utility package for printing simple messages and lin
 Usage
 -------------------
 
-```
-docker run -it --rm lsipii/lolcatfigletgnuplotprint --help
-```
+.. code-block:: shell
+
+    docker run -it --rm lsipii/lolcatfigletgnuplotprint --help
+
 
 Example output
 -------------------
