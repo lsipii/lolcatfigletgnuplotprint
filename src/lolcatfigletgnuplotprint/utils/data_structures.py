@@ -27,6 +27,18 @@ class dotdict(dict):
     __delattr__ = dict.__delitem__
 
 
+def make_dotdict(dictionary: dict):
+    """
+    Makes dictionary a dotdict
+    """
+    if isinstance(dictionary, dict):
+        dot_dictionary = dictionary.copy()
+        for attr in dot_dictionary:
+            dot_dictionary[attr] = make_dotdict(dot_dictionary[attr])
+        return dotdict(dot_dictionary)
+    return dictionary
+
+
 def snakefy_dictionary_keys(input_dict: dict) -> dict:
     """
     transform all dictionary keys to snaky form:

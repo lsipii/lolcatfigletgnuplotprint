@@ -3,11 +3,15 @@ import sh
 import random
 from shutil import which
 
+from lolcatfigletgnuplotprint.utils.data_structures import singleton
+
 from .utils.CommandlinePrinter import CommandlinePrinter
 from .utils.strings import chunk_string_by_length
 from .utils.types import PrinterAttachment
+from .utils.Configuration import Configuration
 
 
+@singleton
 class LolcatFigletPrinter:
     def __init__(self):
         self.___shell_apps = self.___initiailize_shell_apps()
@@ -57,10 +61,11 @@ class LolcatFigletPrinter:
         return self.___printer.flush_buffer()
 
     def ___print_heading_text(self, heading_text: str = None, priority: int = None):
+        """Large heading text"""
         if heading_text is not None:
 
             # Print some new lines for top margin
-            self.___printer.print("\n" * 6)
+            self.___printer.print("\n" * 4)
 
             if "figlet" in self.___shell_apps:
                 heading_output = sh.figlet("-ctf", "slant", heading_text)
@@ -85,12 +90,16 @@ class LolcatFigletPrinter:
                 self.___printer.print(heading_output)
 
     def ___print_description_text(self, description_text: str = None):
+        """Small centered description text"""
         if description_text is not None:
-            description_output = description_text.center(50)
+            desc_rows = description_text.split("\n")
+            desc_rows_margined = ("\n" + Configuration.view.left_margin_fill).join(desc_rows)
+            description_output = (f"{Configuration.view.left_margin_fill}{desc_rows_margined}").center(50)
             self.___printer.print(text=description_output, inline=True, colour="white")
             self.___printer.print("\n")  # 2x new line
 
     def ___print_attachments(self, attachements: List[PrinterAttachment] = []):
+        """list of items, colourfied"""
         if isinstance(attachements, list) and len(attachements) > 0:
 
             # The first and new messages colour
@@ -101,7 +110,7 @@ class LolcatFigletPrinter:
 
             coloursLength = len(colours) - 1
             colourIndex = 0
-            indent = "	  "
+            indent = f"{Configuration.view.left_margin_fill}	"
 
             for responseIndex, responseMessage in enumerate(attachements):
                 text_is_bold = False

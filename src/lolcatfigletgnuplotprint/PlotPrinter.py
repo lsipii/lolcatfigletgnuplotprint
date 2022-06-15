@@ -3,30 +3,38 @@ import termplotlib as tpl
 import datetime
 import math
 
+from lolcatfigletgnuplotprint.utils.data_structures import singleton
+
 from .utils.CommandlinePrinter import CommandlinePrinter
 from .utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_datetime_now, parse_past_date_text
 from .utils.runtime import get_client_public_ip_address
 from .utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
+from .utils.Configuration import Configuration
 
 
+@singleton
 class PlotPrinter:
     def __init__(self):
         datetimeNow = get_datetime_now()
         self.___printer = CommandlinePrinter()
         self.___scopeSeconds = 0
         self.___samplingInterval = 30
-        self.___ip_address = get_client_public_ip_address()
+
+        self.___ip_address = None
+        if Configuration.plotter.show_ip_address:
+            self.___ip_address = get_client_public_ip_address()
+
         self.___dates = {"app_startup_at": datetimeNow, "now_at": datetimeNow}
-        self.___prepend_text_left = "    "
 
     def print(
-        self, value_groups: List[PlotPrinterValueGroup], width=75, height=17, output_as_return_value: bool = False
+        self, value_groups: List[PlotPrinterValueGroup], width=75, height=19, output_as_return_value: bool = False
     ) -> str:
         """
         Prints the history data as a nice xy-plot
         """
 
         # Init
+        self.___dates["now_at"] = get_datetime_now()
         self.___printer.set_output_to_buffer_mode(output_as_return_value)
         compinedValues = []
 
@@ -66,30 +74,37 @@ class PlotPrinter:
 
         # Draw
         plotDump = fig.get_string()
-        plotDump = plotDump.replace("*", "-").replace("A", "*")
-        plotDump = plotDump.replace("#", "_").replace("B", "x")
 
+        # Stylify primary plot line
+        plotDump = plotDump.replace("*", self.___printer.wrap_text_with_colour(text="-", colour="aqua"))
+        plotDump = plotDump.replace("A", self.___printer.wrap_text_with_colour(text="*", colour="aqua"))
+
+        # Stylify secondary plot line
+        plotDump = plotDump.replace("#", self.___printer.wrap_text_with_colour(text="-", colour="grey"))
+        plotDump = plotDump.replace("B", self.___printer.wrap_text_with_colour(text="x", colour="grey"))
+
+        # add a plot margin-left
         plotDump = plotDump.replace("\n", "\n" + " ")
-        self.___printer.print_by_hilighting_char(plotDump, "*", "aqua", "grey")
+
+        self.___printer.print(plotDump)
 
         # Stats
         stats = self.___get_calculated_plot_stats(compinedValues)
         self.___printFooterStats(stats)
         self.___printAdvFooterStatsLine1(stats)
-        # self.___printAdvFooterStatsLine2(stats)
+        self.___printAdvFooterStatsLine2(stats)
         self.___printAdvFooterStatsLine3(stats)
-        # self.___printAdvFooterStatsLine4(stats)
+        self.___printAdvFooterStatsLine4(stats)
 
         return self.___printer.flush_buffer()
 
-    """
-	Print some stats
-	"""
-
     def ___printFooterStats(self, stats: PlotScopeStats):
+        """
+        Print some stats
+        """
 
         # Line start
-        self.___printer.print(self.___prepend_text_left + " ", end=" ")
+        self.___printer.print(Configuration.view.left_margin_fill + " ", end=" ")
 
         # Hour stats
         self.___printer.print("[", end="")  # Container start
@@ -110,7 +125,7 @@ class PlotPrinter:
         # line break
         self.___printer.print(" ")
         # Line start
-        self.___printer.print(self.___prepend_text_left + " ", end=" ")
+        self.___printer.print(Configuration.view.left_margin_fill + " ", end=" ")
 
         # Month stats
         self.___printer.print("[", end="")  # Container start
@@ -131,14 +146,13 @@ class PlotPrinter:
         # line break
         self.___printer.print(" ")
 
-    """
-	Line one
-	"""
-
     def ___printAdvFooterStatsLine1(self, stats: PlotScopeStats):
+        """
+        Line one
+        """
 
         # First line of the footer texts
-        footerFirstLineText = self.___prepend_text_left + "  "
+        footerFirstLineText = Configuration.view.left_margin_fill + "  "
 
         # Scope stats
         footerFirstLineText += "["  # Container start
@@ -173,48 +187,48 @@ class PlotPrinter:
         # Print footer line 1
         self.___printer.print(text=footerFirstLineText, inline=False, colour="grey")
 
-    """
-	Line two
-	"""
-
     def ___printAdvFooterStatsLine2(self, stats: PlotScopeStats):
+        """
+        Line two
+        """
 
-        # Second line of the footer texts
-        footerSecondLineText = self.___prepend_text_left + "  "
+        if Configuration.plotter.show_scope_extra_info_line:
 
-        # Sample rate
-        footerSecondLineText += "["  # Container start
-        footerSecondLineText += "Sample rate:" + str(self.___samplingInterval) + "s"
-        footerSecondLineText += "] "  # Container end
+            # Second line of the footer texts
+            footerSecondLineText = Configuration.view.left_margin_fill + "  "
 
-        # Users per second
-        footerSecondLineText += "["  # Container start
-        if self.___scopeSeconds > 0:
-            meanPerSec = stats["seconds"]["sum"] / self.___scopeSeconds
-        else:
-            meanPerSec = 0
-
-        footerSecondLineText += "Speed:" + "%.2f" % meanPerSec + " u/s"
-        footerSecondLineText += "] "  # Container end
-
-        # History peak time
-        if stats["month"]["max_stamp"] > 0:
+            # Sample rate
             footerSecondLineText += "["  # Container start
-            footerSecondLineText += "HPT: " + datetime_to_text(
-                datetime.datetime.fromtimestamp(stats["month"]["max_stamp"])
-            )
+            footerSecondLineText += "Sample rate:" + str(self.___samplingInterval) + "s"
             footerSecondLineText += "] "  # Container end
 
-        # Print footer line 2
-        self.___printer.print(text=footerSecondLineText, inline=False, colour="grey")
+            # Users per second
+            footerSecondLineText += "["  # Container start
+            if self.___scopeSeconds > 0:
+                meanPerSec = stats["seconds"]["sum"] / self.___scopeSeconds
+            else:
+                meanPerSec = 0
 
-    """
-	Line three
-	"""
+            footerSecondLineText += "Speed:" + "%.2f" % meanPerSec + " u/s"
+            footerSecondLineText += "] "  # Container end
+
+            # History peak time
+            if stats["month"]["max_stamp"] > 0:
+                footerSecondLineText += "["  # Container start
+                footerSecondLineText += "HPT: " + datetime_to_text(
+                    datetime.datetime.fromtimestamp(stats["month"]["max_stamp"])
+                )
+                footerSecondLineText += "] "  # Container end
+
+            # Print footer line 2
+            self.___printer.print(text=footerSecondLineText, inline=False, colour="grey")
 
     def ___printAdvFooterStatsLine3(self, stats: PlotScopeStats):
+        """
+        Line three
+        """
         # Third line of the footer texts
-        footerThirdLineText = self.___prepend_text_left + "  "
+        footerThirdLineText = Configuration.view.left_margin_fill + "  "
 
         footerThirdLineText += "["  # Container start
         footerThirdLineText += "Tracker start time: "
@@ -234,14 +248,13 @@ class PlotPrinter:
         # Print footer line 3
         self.___printer.print(text=footerThirdLineText, inline=False, colour="grey")
 
-    """
-	Line four
-	"""
-
     def ___printAdvFooterStatsLine4(self, stats: PlotScopeStats):
-        if self.___ip_address is not None:
+        """
+        Line four
+        """
+        if Configuration.plotter.show_ip_address and self.___ip_address is not None:
             # Fourth line of the footer texts
-            footerFourthLineText = self.___prepend_text_left + "  "
+            footerFourthLineText = Configuration.view.left_margin_fill + "  "
 
             footerFourthLineText += "["  # Container start
             footerFourthLineText += "Client IP: "

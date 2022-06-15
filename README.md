@@ -14,20 +14,55 @@ python -m pip install lolcatfigletgnuplotprint
 
 ## Usage
 
-Library function:
+As a library function:
 
 ```
 from lolcatfigletgnuplotprint import print_example
 print_example()
 ```
 
-Commandline util:
+```
+from lolcatfigletgnuplotprint import lolcat_figlet_print
+
+lolcat_figlet_print(
+    message="Content",
+    heading_text="Example heading",
+    description_text="A description",
+)
+```
+
+```
+from lolcatfigletgnuplotprint import plot_print
+
+plot_print(
+    value_groups=[
+        {
+            "title": "Data 1",
+            "values": [
+                {"value": 1, "timestamp": 1655305933},
+                {"value": 5, "timestamp": 1655305938},
+                {"value": 2, "timestamp": 1655305943},
+            ],
+        },
+        {
+            "title": "Data 2",
+            "values": [
+                {"value": 7, "timestamp": 1655305933},
+                {"value": 3, "timestamp": 1655305938},
+                {"value": 5, "timestamp": 1655305943},
+            ],
+        },
+    ],
+)
+```
+
+As commandline util:
 
 ```
 python -m lolcatfigletgnuplotprint --help
 ```
 
-Run with prebuilt docker image:
+As ran with pre-built docker image:
 
 ```
 docker run -it --rm lsipii/lolcatfigletgnuplotprint --help

@@ -34,6 +34,9 @@ class CommandlinePrinter:
         """
         return self.___bcolours.get(colour, self.___bcolours["END_COLOUR"])
 
+    def wrap_text_with_colour(self, text: str, colour: str):
+        return f"{self.get_colour(colour)}{text}{self.get_colour('END_COLOUR')}"
+
     def print(self, text, inline=False, colour=None, is_bold=False, is_underlined=False, end="\n"):
 
         if colour is None:
