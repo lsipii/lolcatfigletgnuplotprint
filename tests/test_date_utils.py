@@ -1,6 +1,6 @@
 import unittest
 from dateutil.relativedelta import relativedelta
-from printers.utils.dates import format_datetime, parse_past_date_text
+from src.printers.utils.dates import format_datetime, parse_past_date_text
 
 
 class TestDateUtils(unittest.TestCase):

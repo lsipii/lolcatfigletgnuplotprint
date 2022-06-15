@@ -4,7 +4,9 @@ A simple commandline output utility package for printing simple messages and lin
 
 ## Usage
 
-... TODO:
+```
+docker run -it --rm lsipii/lolcatfigletgnuplotprint --help
+```
 
 ## Example output
 

@@ -1,8 +1,8 @@
 import json
 import click
 
-from printers import lolcat_figlet_print, print_example
-from printers.utils.data_structures import snakefy_dictionary_keys
+from .__main__ import lolcat_figlet_print, print_example
+from .utils.data_structures import snakefy_dictionary_keys
 
 
 def ___parse_json_input(json_input: str):
@@ -89,7 +89,3 @@ def _cli(
             description_text=description_text,
             attachements=attachements,
         )
-
-
-if __name__ == "__main__":
-    _cli()

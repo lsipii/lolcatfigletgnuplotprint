@@ -1,4 +1,4 @@
-from printers.utils.strings import snakefy_key
+from .strings import snakefy_key
 
 
 def singleton(class_):

@@ -1,9 +1,9 @@
 from typing import List
 
-from printers.LolcatFigletPrinter import LolcatFigletPrinter
-from printers.PlotPrinter import PlotPrinter
-from printers.utils.dates import get_datetime_now
-from printers.utils.types import PlotPrinterValueGroup, PrinterAttachment
+from .LolcatFigletPrinter import LolcatFigletPrinter
+from .PlotPrinter import PlotPrinter
+from .utils.dates import get_datetime_now
+from .utils.types import PlotPrinterValueGroup, PrinterAttachment
 
 
 def print_example():
@@ -78,3 +78,9 @@ def lolcat_figlet_print(
         priority=priority,
         output_as_return_value=output_as_return_value,
     )
+
+
+if __name__ == "__main__":
+    from ._cli import _cli
+
+    _cli()

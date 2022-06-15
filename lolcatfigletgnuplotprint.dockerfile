@@ -1,7 +1,7 @@
-# build: docker build -t lolcatfigletgnuplotprint -f lolcatfigletgnuplotprint.dockerfile .
-# run: docker run -it --rm lolcatfigletgnuplotprint
+# build: docker build -t lsipii/lolcatfigletgnuplotprint -f lolcatfigletgnuplotprint.dockerfile .
+# run: docker run -it --rm lsipii/lolcatfigletgnuplotprint
 FROM python:3.10
-WORKDIR /usr/src/app
+WORKDIR /usr/src/lolcatfigletgnuplotprint
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
@@ -16,4 +16,4 @@ ENV PATH $PATH:/usr/games
 COPY . .
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT [ "python",  "-m", "printers"]
+ENTRYPOINT [ "python",  "-m", "src.printers"]
