@@ -25,8 +25,10 @@ class CommandlinePrinter:
         "END_STYLE": "\033[0m",
     }
 
-    def clear_screen(self):
+    def clear_screen(self, message: str = None):
         self.print(sh.clear())
+        if message is not None:
+            self.print(message)
 
     def get_colour(self, colour):
         """
@@ -37,8 +39,10 @@ class CommandlinePrinter:
     def wrap_text_with_colour(self, text: str, colour: str):
         return f"{self.get_colour(colour)}{text}{self.get_colour('END_COLOUR')}"
 
-    def print(self, text, inline=False, colour=None, is_bold=False, is_underlined=False, end="\n"):
-
+    def get_text_output(self, text, inline=False, colour=None, is_bold=False, is_underlined=False, end="\n") -> str:
+        """
+        Forms the text output
+        """
         if colour is None:
             colour = self.get_colour("END_COLOUR")
 
@@ -51,7 +55,14 @@ class CommandlinePrinter:
         if is_underlined:
             text = f"{self.get_colour('START_UNDERLINE_STYLE')}{text}{self.get_colour('END_STYLE')}"
 
-        self.___write(f"{self.get_colour(colour)}{text}{self.get_colour('END_COLOUR')}{end}")
+        return f"{self.get_colour(colour)}{text}{self.get_colour('END_COLOUR')}{end}"
+
+    def print(self, text, inline=False, colour=None, is_bold=False, is_underlined=False, end="\n"):
+        """
+        Prints to buffer
+        """
+        text_output = self.get_text_output(text, inline, colour, is_bold, is_underlined, end)
+        self.___write(text_output)
 
     def print_by_hilighting_char(self, text, character, colour, bgColour="default"):
         bgColour = self.get_colour(bgColour)

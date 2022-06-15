@@ -67,6 +67,7 @@ def lolcat_figlet_print(
     attachements: List[PrinterAttachment] = [],
     priority: int = None,
     output_as_return_value: bool = False,
+    print_vertical_margins: bool = True,
 ) -> str:
     from .LolcatFigletPrinter import LolcatFigletPrinter
 
@@ -80,13 +81,14 @@ def lolcat_figlet_print(
         attachements=attachements,
         priority=priority,
         output_as_return_value=output_as_return_value,
+        print_vertical_margins=print_vertical_margins,
     )
 
 
-def clear_screen():
+def clear_screen(message: str = None):
     from .utils.CommandlinePrinter import CommandlinePrinter
 
     """
     Clears terminal screen
     """
-    CommandlinePrinter().clear_screen()
+    CommandlinePrinter().clear_screen(message)

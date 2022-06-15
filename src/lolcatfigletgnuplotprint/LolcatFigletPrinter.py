@@ -1,9 +1,9 @@
 from typing import List
 import sh
 import random
-from shutil import which
 
 from lolcatfigletgnuplotprint.utils.data_structures import singleton
+from lolcatfigletgnuplotprint.utils.runtime import check_shell_apps_installed
 
 from .utils.CommandlinePrinter import CommandlinePrinter
 from .utils.strings import chunk_string_by_length
@@ -14,7 +14,7 @@ from .utils.Configuration import Configuration
 @singleton
 class LolcatFigletPrinter:
     def __init__(self):
-        self.___shell_apps = self.___initiailize_shell_apps()
+        self.___shell_apps_installed = check_shell_apps_installed(["lolcat", "figlet"])
         self.___printer = CommandlinePrinter()
 
     def print(
@@ -25,8 +25,9 @@ class LolcatFigletPrinter:
         attachements: List[PrinterAttachment] = [],
         priority: int = None,
         output_as_return_value: bool = False,
+        print_vertical_margins: bool = True,
     ) -> str:
-
+        """The out-putter, swinger"""
         # Init
         self.___printer.set_output_to_buffer_mode(output_as_return_value)
 
@@ -38,16 +39,27 @@ class LolcatFigletPrinter:
         #
         # Print heading text
         #
-        self.___print_heading_text(heading_text=heading_text, priority=priority)
-
+        heading = self.___form_heading_text(heading_text=heading_text, priority=priority)
+        if heading is not None:
+            if print_vertical_margins:
+                # Print some new lines for top margin
+                self.___printer.print("\n" * 4)
+            self.___printer.print(heading)
         #
         # Print description text
         #
-        self.___print_description_text(description_text=description_text)
+        description = self.___form_description_text(description_text=description_text)
+        if description is not None:
+            self.___printer.print(description)
+            if print_vertical_margins:
+                self.___printer.print("\n")  # 2x new line
+
         #
         # Print attachments
         #
-        self.___print_attachments(attachements=attachements)
+        attachments_text = self.___form_attachments_text(attachements=attachements)
+        if attachments_text is not None:
+            self.___printer.print(attachments_text)
 
         #
         # Print the message
@@ -55,52 +67,56 @@ class LolcatFigletPrinter:
         if message is not None:
             self.___printer.print(message)
 
-        # Print some new lines for end margin
-        self.___printer.print("\n" * 2)
+        if print_vertical_margins:
+            # Print some new lines for end margin
+            self.___printer.print("\n" * 2)
 
         return self.___printer.flush_buffer()
 
-    def ___print_heading_text(self, heading_text: str = None, priority: int = None):
+    def ___form_heading_text(self, heading_text: str = None, priority: int = None) -> str:
         """Large heading text"""
+        text_output = None
         if heading_text is not None:
-
-            # Print some new lines for top margin
-            self.___printer.print("\n" * 4)
-
-            if "figlet" in self.___shell_apps:
+            if "figlet" in self.___shell_apps_installed:
                 heading_output = sh.figlet("-ctf", "slant", heading_text)
             else:
                 heading_output = str(heading_text).center(50)
 
-            if "lolcat" in self.___shell_apps:
+            if "lolcat" in self.___shell_apps_installed:
                 heading_output = sh.lolcat(heading_output)
 
             #
             # Print the lolcat figlet message
             #
-            if "lolcat" not in self.___shell_apps:
+            if "lolcat" not in self.___shell_apps_installed:
                 output_text = str(heading_output)
                 if priority is None or priority > 0:
                     figlet_colours = ["aqua", "green", "magenta", "yellow"]
                     figlet_colour = random.choice(figlet_colours)
                 else:
                     figlet_colour = "grey"
-                self.___printer.print(text=output_text, inline=False, colour=figlet_colour)
+                text_output = self.___printer.get_text_output(text=output_text, inline=False, colour=figlet_colour)
             else:
-                self.___printer.print(heading_output)
+                text_output = self.___printer.get_text_output(heading_output)
 
-    def ___print_description_text(self, description_text: str = None):
+        return text_output
+
+    def ___form_description_text(self, description_text: str = None) -> str:
         """Small centered description text"""
+        text_output = None
         if description_text is not None:
             desc_rows = description_text.split("\n")
             desc_rows_margined = ("\n" + Configuration.view.left_margin_fill).join(desc_rows)
             description_output = (f"{Configuration.view.left_margin_fill}{desc_rows_margined}").center(50)
-            self.___printer.print(text=description_output, inline=True, colour="white")
-            self.___printer.print("\n")  # 2x new line
+            text_output = self.___printer.get_text_output(text=description_output, inline=True, colour="white")
+        return text_output
 
-    def ___print_attachments(self, attachements: List[PrinterAttachment] = []):
+    def ___form_attachments_text(self, attachements: List[PrinterAttachment] = []) -> str:
+        text_output = None
+
         """list of items, colourfied"""
         if isinstance(attachements, list) and len(attachements) > 0:
+            text_output = ""
 
             # The first and new messages colour
             firstMessageColour = "green"
@@ -135,12 +151,14 @@ class LolcatFigletPrinter:
                     if messageChunkIndex == 0:
                         # Print sender
                         # .. some indent
-                        self.___printer.print(indent, end=" ")
+                        text_output += self.___printer.get_text_output(indent, end=" ")
                         # Coloured message part
                         if "senderName" in responseMessage:
-                            self.___printer.print(text=responseMessage["senderName"] + " ", inline=True, colour="aqua")
+                            text_output += self.___printer.get_text_output(
+                                text=responseMessage["senderName"] + " ", inline=True, colour="aqua"
+                            )
                         # Coloured message part
-                        self.___printer.print(
+                        text_output += self.___printer.get_text_output(
                             text=messagePart,
                             inline=False,
                             colour=messageColour,
@@ -149,15 +167,11 @@ class LolcatFigletPrinter:
                         )
                     else:
                         # Coloured message part
-                        self.___printer.print(text=indent + " " + messagePart, inline=False, colour=messageColour)
+                        text_output += self.___printer.get_text_output(
+                            text=indent + " " + messagePart, inline=False, colour=messageColour
+                        )
 
                 # 1x new line
-                self.___printer.print("")
+                text_output += self.___printer.get_text_output("")
 
-    def ___initiailize_shell_apps(self):
-        shell_apps = []
-        for app_name in ["lolcat", "figlet"]:
-            app_path = which(app_name)
-            if app_path is not None:
-                shell_apps.append(app_name)
-        return shell_apps
+        return text_output
