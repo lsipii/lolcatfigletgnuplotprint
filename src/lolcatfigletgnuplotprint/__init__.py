@@ -54,7 +54,6 @@ def plot_print(
     width=75,
     height=17,
     output_as_return_value: bool = False,
-    previous_stats: PlotScopeStats = None,
 ) -> str:
     from .PlotPrinter import PlotPrinter
 
@@ -66,7 +65,6 @@ def plot_print(
         width=width,
         height=height,
         output_as_return_value=output_as_return_value,
-        previous_stats=previous_stats,
     )
 
 

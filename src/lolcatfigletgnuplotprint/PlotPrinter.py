@@ -19,6 +19,7 @@ class PlotPrinter:
         self.___printer = CommandlinePrinter()
         self.___scopeSeconds = 0
         self.___samplingInterval = 30
+        self.___previous_stats = None
 
         self.___ip_address = None
         if Configuration.plotter.show_ip_address:
@@ -32,7 +33,6 @@ class PlotPrinter:
         width=75,
         height=19,
         output_as_return_value: bool = False,
-        previous_stats: PlotScopeStats = None,
     ) -> str:
         """
         Prints the history data as a nice xy-plot
@@ -94,7 +94,8 @@ class PlotPrinter:
         self.___printer.print(plotDump)
 
         # Stats
-        stats = self.___get_calculated_plot_stats(compinedValues, previous_stats)
+        stats = self.___get_calculated_plot_stats(compinedValues)
+
         self.___printFooterStats(stats)
         self.___printAdvFooterStatsLine1(stats)
         self.___printAdvFooterStatsLine2(stats)
@@ -269,9 +270,7 @@ class PlotPrinter:
             # Print footer line 4
             self.___printer.print(text=footerFourthLineText, inline=False, colour="grey")
 
-    def ___get_calculated_plot_stats(
-        self, current_values: List[PlotUnit], previous_stats: PlotScopeStats = None
-    ) -> PlotScopeStats:
+    def ___get_calculated_plot_stats(self, current_values: List[PlotUnit]) -> PlotScopeStats:
         """
         Compiles stats obj
         """
@@ -317,20 +316,31 @@ class PlotPrinter:
                 "sum": summarum,
             }
 
-        return {
+        stats = {
             "seconds": calculate_stats(
                 "seconds",
-                previous_stats,
+                self.___previous_stats,
                 self.___filter_past_plot_values(current_values, f"{self.___scopeSeconds} secs"),
             ),
-            "hour": calculate_stats("hour", previous_stats, self.___filter_past_plot_values(current_values, "1 hour")),
-            "day": calculate_stats("day", previous_stats, self.___filter_past_plot_values(current_values, "1 day")),
-            "week": calculate_stats("week", previous_stats, self.___filter_past_plot_values(current_values, "1 week")),
-            "month": calculate_stats(
-                "month", previous_stats, self.___filter_past_plot_values(current_values, "1 month")
+            "hour": calculate_stats(
+                "hour", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 hour")
             ),
-            "year": calculate_stats("year", previous_stats, self.___filter_past_plot_values(current_values, "1 year")),
+            "day": calculate_stats(
+                "day", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 day")
+            ),
+            "week": calculate_stats(
+                "week", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 week")
+            ),
+            "month": calculate_stats(
+                "month", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 month")
+            ),
+            "year": calculate_stats(
+                "year", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 year")
+            ),
         }
+
+        self.___previous_stats = stats
+        return stats
 
     def ___filter_past_plot_values(self, values: List[PlotUnit], past_time_text: str) -> List[PlotUnit]:
         return list(
