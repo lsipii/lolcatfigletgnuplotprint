@@ -19,7 +19,6 @@ class PlotPrinter:
         self.___printer = CommandlinePrinter()
         self.___scopeSeconds = 0
         self.___samplingInterval = 30
-        self.___previous_stats = None
 
         self.___ip_address = None
         if Configuration.plotter.show_ip_address:
@@ -275,7 +274,7 @@ class PlotPrinter:
         Compiles stats obj
         """
 
-        def calculate_stats(stats_name: str, previous_stats: PlotScopeStats, plot_values: List[PlotUnit]) -> PlotStat:
+        def calculate_stats(plot_values: List[PlotUnit]) -> PlotStat:
 
             # Increase counters
             count = len(plot_values)
@@ -286,15 +285,8 @@ class PlotPrinter:
             min_stamp = 0
             max_stamp = 0
 
-            if isinstance(previous_stats, dict) and stats_name in previous_stats:
-                minimum = previous_stats[stats_name]["min"]
-                maximum = previous_stats[stats_name]["max"]
-                min_stamp = previous_stats[stats_name]["min_stamp"]
-                max_stamp = previous_stats[stats_name]["max_stamp"]
-
             # Calc average, min and max
             if count > 0:
-
                 for v in plot_values:
                     value = v["value"]
                     summarum += value
@@ -316,30 +308,20 @@ class PlotPrinter:
                 "sum": summarum,
             }
 
-        stats = {
-            "seconds": calculate_stats(
-                "seconds",
-                self.___previous_stats,
-                self.___filter_past_plot_values(current_values, f"{self.___scopeSeconds} secs"),
-            ),
-            "hour": calculate_stats(
-                "hour", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 hour")
-            ),
-            "day": calculate_stats(
-                "day", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 day")
-            ),
-            "week": calculate_stats(
-                "week", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 week")
-            ),
-            "month": calculate_stats(
-                "month", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 month")
-            ),
-            "year": calculate_stats(
-                "year", self.___previous_stats, self.___filter_past_plot_values(current_values, "1 year")
-            ),
-        }
+        scopes = [
+            {"name": "seconds", "time_filter": f"{self.___scopeSeconds} secs"},
+            {"name": "hour", "time_filter": "1 hour"},
+            {"name": "day", "time_filter": "1 day"},
+            {"name": "week", "time_filter": "1 week"},
+            {"name": "month", "time_filter": "1 month"},
+            {"name": "year", "time_filter": "1 year"},
+        ]
 
-        self.___previous_stats = stats
+        stats = {}
+        for scope in scopes:
+            stats[scope["name"]] = calculate_stats(
+                self.___filter_past_plot_values(current_values, scope["time_filter"]),
+            )
         return stats
 
     def ___filter_past_plot_values(self, values: List[PlotUnit], past_time_text: str) -> List[PlotUnit]:
