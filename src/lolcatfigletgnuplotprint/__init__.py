@@ -1,6 +1,6 @@
 from typing import List
 
-from .utils.types import PlotPrinterValueGroup, PrinterAttachment
+from .utils.types import PlotPrinterValueGroup, PlotScopeStats, PrinterAttachment
 from .utils.dates import get_datetime_now
 
 
@@ -50,14 +50,24 @@ def print_example():
 
 
 def plot_print(
-    value_groups: List[PlotPrinterValueGroup], width=75, height=17, output_as_return_value: bool = False
+    value_groups: List[PlotPrinterValueGroup],
+    width=75,
+    height=17,
+    output_as_return_value: bool = False,
+    previous_stats: PlotScopeStats = None,
 ) -> str:
     from .PlotPrinter import PlotPrinter
 
     """
     Prints xy-plot
     """
-    return PlotPrinter().print(value_groups, width, height, output_as_return_value)
+    return PlotPrinter().print(
+        value_groups=value_groups,
+        width=width,
+        height=height,
+        output_as_return_value=output_as_return_value,
+        previous_stats=previous_stats,
+    )
 
 
 def lolcat_figlet_print(

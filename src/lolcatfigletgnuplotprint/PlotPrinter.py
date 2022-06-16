@@ -27,7 +27,12 @@ class PlotPrinter:
         self.___dates = {"app_startup_at": datetimeNow, "now_at": datetimeNow}
 
     def print(
-        self, value_groups: List[PlotPrinterValueGroup], width=75, height=19, output_as_return_value: bool = False
+        self,
+        value_groups: List[PlotPrinterValueGroup],
+        width=75,
+        height=19,
+        output_as_return_value: bool = False,
+        previous_stats: PlotScopeStats = None,
     ) -> str:
         """
         Prints the history data as a nice xy-plot
@@ -89,7 +94,7 @@ class PlotPrinter:
         self.___printer.print(plotDump)
 
         # Stats
-        stats = self.___get_calculated_plot_stats(compinedValues)
+        stats = self.___get_calculated_plot_stats(compinedValues, previous_stats)
         self.___printFooterStats(stats)
         self.___printAdvFooterStatsLine1(stats)
         self.___printAdvFooterStatsLine2(stats)
@@ -264,12 +269,14 @@ class PlotPrinter:
             # Print footer line 4
             self.___printer.print(text=footerFourthLineText, inline=False, colour="grey")
 
-    def ___get_calculated_plot_stats(self, values: List[PlotUnit]) -> PlotScopeStats:
+    def ___get_calculated_plot_stats(
+        self, current_values: List[PlotUnit], previous_stats: PlotScopeStats = None
+    ) -> PlotScopeStats:
         """
         Compiles stats obj
         """
 
-        def calculate_stats(plot_values: List[PlotUnit]) -> PlotStat:
+        def calculate_stats(stats_name: str, previous_stats: PlotScopeStats, plot_values: List[PlotUnit]) -> PlotStat:
 
             # Increase counters
             count = len(plot_values)
@@ -279,6 +286,12 @@ class PlotPrinter:
             maximum = None
             min_stamp = 0
             max_stamp = 0
+
+            if isinstance(previous_stats, dict) and stats_name in previous_stats:
+                minimum = previous_stats[stats_name]["min"]
+                maximum = previous_stats[stats_name]["max"]
+                min_stamp = previous_stats[stats_name]["min_stamp"]
+                max_stamp = previous_stats[stats_name]["max_stamp"]
 
             # Calc average, min and max
             if count > 0:
@@ -305,12 +318,18 @@ class PlotPrinter:
             }
 
         return {
-            "seconds": calculate_stats(self.___filter_past_plot_values(values, f"{self.___scopeSeconds} secs")),
-            "hour": calculate_stats(self.___filter_past_plot_values(values, "1 hour")),
-            "day": calculate_stats(self.___filter_past_plot_values(values, "1 day")),
-            "week": calculate_stats(self.___filter_past_plot_values(values, "1 week")),
-            "month": calculate_stats(self.___filter_past_plot_values(values, "1 month")),
-            "year": calculate_stats(self.___filter_past_plot_values(values, "1 year")),
+            "seconds": calculate_stats(
+                "seconds",
+                previous_stats,
+                self.___filter_past_plot_values(current_values, f"{self.___scopeSeconds} secs"),
+            ),
+            "hour": calculate_stats("hour", previous_stats, self.___filter_past_plot_values(current_values, "1 hour")),
+            "day": calculate_stats("day", previous_stats, self.___filter_past_plot_values(current_values, "1 day")),
+            "week": calculate_stats("week", previous_stats, self.___filter_past_plot_values(current_values, "1 week")),
+            "month": calculate_stats(
+                "month", previous_stats, self.___filter_past_plot_values(current_values, "1 month")
+            ),
+            "year": calculate_stats("year", previous_stats, self.___filter_past_plot_values(current_values, "1 year")),
         }
 
     def ___filter_past_plot_values(self, values: List[PlotUnit], past_time_text: str) -> List[PlotUnit]:
