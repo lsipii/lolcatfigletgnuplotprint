@@ -106,15 +106,17 @@ class PlotPrinter:
         stats = self.___get_calculated_plot_stats(compinedValues)
 
         # Print stats
-        self.___printFooterStats(stats)
-        self.___printAdvFooterStatsLine1(stats)
-        self.___printAdvFooterStatsLine2(stats)
-        self.___printAdvFooterStatsLine3(stats)
-        self.___printAdvFooterStatsLine4(stats)
+        had_output = self.___print_scope_history_stats(stats)
+        self.___print_scope_stats(stats, colour="grey" if had_output else "aqua")
+
+        # Extra info
+        self.___print_adv_footer_stats_line1(stats)
+        self.___print_adv_footer_stats_line2(stats)
+        self.___print_adv_footer_stats_line3(stats)
 
         return self.___printer.flush_buffer()
 
-    def ___printFooterStats(self, stats: PlotScopeStats):
+    def ___print_scope_history_stats(self, stats: PlotScopeStats) -> bool:
         """
         Print some stats
         """
@@ -123,7 +125,10 @@ class PlotPrinter:
             stat_line = ""
             stat_line += self.___printer.print("[", end="", output_only_as_return_value=True)  # Container start
             stat_line += self.___printer.print(
-                text=f"{stat_name.capitalize()}:", inline=True, colour="aqua", output_only_as_return_value=True
+                text=f"{stat_name.replace('_', ' ').capitalize()}:",
+                inline=True,
+                colour="aqua",
+                output_only_as_return_value=True,
             )
             stat_line += self.___printer.print(
                 "Min:" + str(stats[stat_name]["min"]), end=" ", output_only_as_return_value=True
@@ -141,6 +146,8 @@ class PlotPrinter:
         scopes = [
             "scope",
             "hour",
+            "three_hours",
+            "six_hours",
             "week",
             "month",
             "year",
@@ -160,7 +167,9 @@ class PlotPrinter:
             self.___printer.print(Configuration.view.left_margin_fill + " ", end=" ")
             self.___printer.print(" ".join(line_group))
 
-    def ___printAdvFooterStatsLine1(self, stats: PlotScopeStats):
+        return len(line_groups) > 0
+
+    def ___print_scope_stats(self, stats: PlotScopeStats, colour: str):
         """
         Line one
         """
@@ -199,9 +208,9 @@ class PlotPrinter:
         footerFirstLineText += "] "  # Container end
 
         # Print footer line 1
-        self.___printer.print(text=footerFirstLineText, inline=False, colour="grey")
+        self.___printer.print(text=footerFirstLineText, inline=False, colour=colour)
 
-    def ___printAdvFooterStatsLine2(self, stats: PlotScopeStats):
+    def ___print_adv_footer_stats_line1(self, stats: PlotScopeStats):
         """
         Line two
         """
@@ -237,7 +246,7 @@ class PlotPrinter:
             # Print footer line 2
             self.___printer.print(text=footerSecondLineText, inline=False, colour="grey")
 
-    def ___printAdvFooterStatsLine3(self, stats: PlotScopeStats):
+    def ___print_adv_footer_stats_line2(self, stats: PlotScopeStats):
         """
         Line three
         """
@@ -262,7 +271,7 @@ class PlotPrinter:
         # Print footer line 3
         self.___printer.print(text=footerThirdLineText, inline=False, colour="grey")
 
-    def ___printAdvFooterStatsLine4(self, stats: PlotScopeStats):
+    def ___print_adv_footer_stats_line3(self, stats: PlotScopeStats):
         """
         Line four
         """
@@ -322,7 +331,9 @@ class PlotPrinter:
         month_values = self.___filter_past_plot_values(year_values, "1 month")
         week_values = self.___filter_past_plot_values(month_values, "1 week")
         day_values = self.___filter_past_plot_values(week_values, "1 day")
-        hour_values = self.___filter_past_plot_values(day_values, "1 hour")
+        six_hours_values = self.___filter_past_plot_values(day_values, "6 hours")
+        three_hours_values = self.___filter_past_plot_values(six_hours_values, "3 hours")
+        hour_values = self.___filter_past_plot_values(three_hours_values, "1 hour")
 
         return {
             "scope": calculate_stats(scope_values),
@@ -330,6 +341,8 @@ class PlotPrinter:
             "month": calculate_stats(month_values),
             "week": calculate_stats(week_values),
             "day": calculate_stats(day_values),
+            "six_hours": calculate_stats(six_hours_values),
+            "three_hours": calculate_stats(three_hours_values),
             "hour": calculate_stats(hour_values),
         }
 

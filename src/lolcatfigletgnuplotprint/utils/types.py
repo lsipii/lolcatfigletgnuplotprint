@@ -24,6 +24,8 @@ class PlotStat(TypedDict):
 class PlotScopeStats(TypedDict):
     scope: PlotStat
     hour: PlotStat
+    three_hours: PlotStat
+    six_hours: PlotStat
     day: PlotStat
     week: PlotStat
     month: PlotStat
