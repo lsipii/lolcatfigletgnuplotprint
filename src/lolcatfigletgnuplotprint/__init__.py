@@ -54,7 +54,6 @@ def plot_print(
     width=75,
     height=17,
     output_only_as_return_value: bool = False,
-    sample_interval_secs: int = 60,
 ) -> str:
     from .PlotPrinter import PlotPrinter
 
@@ -66,7 +65,6 @@ def plot_print(
         width=width,
         height=height,
         output_only_as_return_value=output_only_as_return_value,
-        sample_interval_secs=sample_interval_secs,
     )
 
 

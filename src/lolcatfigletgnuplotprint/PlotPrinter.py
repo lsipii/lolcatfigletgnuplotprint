@@ -18,7 +18,7 @@ class PlotPrinter:
     def __init__(self):
         datetimeNow = get_datetime_now()
         self.___printer = CommandlinePrinter()
-        self.___max_scope_points = 40
+        self.___max_scope_points = 30
 
         self.___ip_address = None
         if Configuration.plotter.show_ip_address:
@@ -32,7 +32,6 @@ class PlotPrinter:
         width=75,
         height=19,
         output_only_as_return_value: bool = False,
-        sample_interval_secs: int = 60,
     ) -> str:
         """
         Prints the history data as a nice xy-plot
@@ -42,7 +41,6 @@ class PlotPrinter:
         self.___dates["now_at"] = get_datetime_now()
         self.___printer.set_output_to_buffer_mode(output_only_as_return_value)
         compinedValues = []
-        max_targeted_plot_values = 0
 
         # Plot
         plot_command_parts = []
@@ -54,8 +52,6 @@ class PlotPrinter:
 
             # Limit scope size
             targeted_plot_values = group["values"][-self.___max_scope_points :]
-            if len(targeted_plot_values) > max_targeted_plot_values:
-                max_targeted_plot_values = len(targeted_plot_values)
 
             # Make axis
             x = list(range(0, len(targeted_plot_values)))  # @TODO: plot timestamps on x-tics
@@ -99,10 +95,6 @@ class PlotPrinter:
         #
         # Stats
         #
-
-        # Set scope length for stats
-        self.___scopeSeconds = max((max_targeted_plot_values * sample_interval_secs) - sample_interval_secs, 0)
-
         stats = self.___get_calculated_plot_stats(compinedValues)
 
         # Print stats
@@ -188,17 +180,18 @@ class PlotPrinter:
         footerFirstLineText += "] "  # Container end
 
         # Scope of the plot
-        scopeMinutes = self.___scopeSeconds / 60
-        if self.___scopeSeconds < 60:
-            scopeTimeTotal = str(self.___scopeSeconds) + "s"
+        scopeSeconds = self.___get_scope_seconds(stats)
+        scopeMinutes = scopeSeconds / 60
+        if scopeSeconds < 60:
+            scopeTimeTotal = str(scopeSeconds) + "s"
         else:
             scopeTimeTotal = "%.0f" % (scopeMinutes) + "min"
 
         # Scope range
         footerFirstLineText += "["  # Container start
         footerFirstLineText += datetime_to_text(self.___dates["now_at"])
-        if self.___scopeSeconds >= 60:
-            dateTimeScopeStart = self.___dates["now_at"] - datetime.timedelta(seconds=self.___scopeSeconds)
+        if scopeSeconds >= 60:
+            dateTimeScopeStart = self.___dates["now_at"] - datetime.timedelta(seconds=scopeSeconds)
             footerFirstLineText += " " + dateTimeScopeStart.strftime("%H:%M")
             footerFirstLineText += "→" + self.___dates["now_at"].strftime("%M")
         else:
@@ -226,9 +219,10 @@ class PlotPrinter:
             footerSecondLineText += "] "  # Container end
 
             # Users per second
+            scopeSeconds = self.___get_scope_seconds(stats)
             footerSecondLineText += "["  # Container start
-            if self.___scopeSeconds > 0:
-                meanPerSec = stats["seconds"]["sum"] / self.___scopeSeconds
+            if scopeSeconds > 0:
+                meanPerSec = stats["seconds"]["sum"] / scopeSeconds
             else:
                 meanPerSec = 0
 
@@ -326,7 +320,7 @@ class PlotPrinter:
                 "sum": summarum,
             }
 
-        scope_values = self.___filter_past_plot_values(current_values, f"{self.___scopeSeconds} secs")
+        scope_values = current_values[-self.___max_scope_points :]
         year_values = self.___filter_past_plot_values(current_values, "1 year")
         month_values = self.___filter_past_plot_values(year_values, "1 month")
         week_values = self.___filter_past_plot_values(month_values, "1 week")
@@ -354,3 +348,6 @@ class PlotPrinter:
                 values,
             )
         )
+
+    def ___get_scope_seconds(self, stats: PlotScopeStats) -> int:
+        return int(stats["scope"]["max_stamp"]) - int(stats["scope"]["min_stamp"])
