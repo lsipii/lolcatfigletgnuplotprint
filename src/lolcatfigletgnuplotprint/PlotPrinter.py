@@ -139,7 +139,7 @@ class PlotPrinter:
             stat_line += self.___printer.print(
                 "Avg:" + "%.0f" % stats[stat_name]["average"], end="", output_only_as_return_value=True
             )
-            stat_line += self.___printer.print("]", end=" ")  # Container end
+            stat_line += self.___printer.print("]", end=" ", output_only_as_return_value=True)  # Container end
             return stat_line
 
         stat_lines = []
