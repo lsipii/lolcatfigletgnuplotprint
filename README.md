@@ -8,7 +8,7 @@ Relies on [lolcat](https://github.com/tehmaze/lolcat), [figlet](http://www.figle
 
 ## Install
 
-```
+```Shell
 python -m pip install lolcatfigletgnuplotprint
 ```
 
@@ -16,12 +16,12 @@ python -m pip install lolcatfigletgnuplotprint
 
 As a library function:
 
-```
+```Python
 from lolcatfigletgnuplotprint import print_example
 print_example()
 ```
 
-```
+```Python
 from lolcatfigletgnuplotprint import lolcat_figlet_print
 
 lolcat_figlet_print(
@@ -31,7 +31,7 @@ lolcat_figlet_print(
 )
 ```
 
-```
+```Python
 from lolcatfigletgnuplotprint import plot_print
 
 plot_print(
@@ -58,13 +58,13 @@ plot_print(
 
 As commandline util:
 
-```
+```Shell
 python -m lolcatfigletgnuplotprint --help
 ```
 
 As ran with pre-built docker image:
 
-```
+```Shell
 docker run -it --rm lsipii/lolcatfigletgnuplotprint --help
 ```
 
