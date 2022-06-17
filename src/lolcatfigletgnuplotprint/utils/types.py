@@ -22,7 +22,7 @@ class PlotStat(TypedDict):
 
 
 class PlotScopeStats(TypedDict):
-    current: PlotStat
+    scope: PlotStat
     hour: PlotStat
     day: PlotStat
     week: PlotStat

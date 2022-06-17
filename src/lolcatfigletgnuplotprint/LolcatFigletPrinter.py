@@ -24,12 +24,12 @@ class LolcatFigletPrinter:
         description_text: str = None,
         attachements: List[PrinterAttachment] = [],
         priority: int = None,
-        output_as_return_value: bool = False,
+        output_only_as_return_value: bool = False,
         print_vertical_margins: bool = True,
     ) -> str:
         """The out-putter, swinger"""
         # Init
-        self.___printer.set_output_to_buffer_mode(output_as_return_value)
+        self.___printer.set_output_to_buffer_mode(output_only_as_return_value)
 
         #
         # Clear previous view

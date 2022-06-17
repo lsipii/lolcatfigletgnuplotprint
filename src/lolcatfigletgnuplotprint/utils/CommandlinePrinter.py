@@ -57,12 +57,23 @@ class CommandlinePrinter:
 
         return f"{self.get_colour(colour)}{text}{self.get_colour('END_COLOUR')}{end}"
 
-    def print(self, text, inline=False, colour=None, is_bold=False, is_underlined=False, end="\n"):
+    def print(
+        self,
+        text,
+        inline=False,
+        colour=None,
+        is_bold=False,
+        is_underlined=False,
+        end="\n",
+        output_only_as_return_value: bool = False,
+    ):
         """
         Prints to buffer
         """
         text_output = self.get_text_output(text, inline, colour, is_bold, is_underlined, end)
-        self.___write(text_output)
+        if not output_only_as_return_value:
+            self.___write(text_output)
+        return text_output
 
     def print_by_hilighting_char(self, text, character, colour, bgColour="default"):
         bgColour = self.get_colour(bgColour)

@@ -4,6 +4,7 @@ import datetime
 import math
 
 from lolcatfigletgnuplotprint.utils.data_structures import singleton
+from lolcatfigletgnuplotprint.utils.transformations import chunk_list
 
 from .utils.CommandlinePrinter import CommandlinePrinter
 from .utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_datetime_now, parse_past_date_text
@@ -17,8 +18,7 @@ class PlotPrinter:
     def __init__(self):
         datetimeNow = get_datetime_now()
         self.___printer = CommandlinePrinter()
-        self.___scopeSeconds = 0
-        self.___samplingInterval = 30
+        self.___max_scope_points = 40
 
         self.___ip_address = None
         if Configuration.plotter.show_ip_address:
@@ -31,7 +31,8 @@ class PlotPrinter:
         value_groups: List[PlotPrinterValueGroup],
         width=75,
         height=19,
-        output_as_return_value: bool = False,
+        output_only_as_return_value: bool = False,
+        sample_interval_secs: int = 60,
     ) -> str:
         """
         Prints the history data as a nice xy-plot
@@ -39,15 +40,9 @@ class PlotPrinter:
 
         # Init
         self.___dates["now_at"] = get_datetime_now()
-        self.___printer.set_output_to_buffer_mode(output_as_return_value)
+        self.___printer.set_output_to_buffer_mode(output_only_as_return_value)
         compinedValues = []
-
-        # Set scope length
-        maxValuesLen = 0
-        for group in value_groups:
-            if len(group["values"]) > maxValuesLen:
-                maxValuesLen = len(group["values"])
-        self.___scopeSeconds = max((maxValuesLen * self.___samplingInterval) - self.___samplingInterval, 0)
+        max_targeted_plot_values = 0
 
         # Plot
         plot_command_parts = []
@@ -56,8 +51,15 @@ class PlotPrinter:
 
         for group in value_groups:
             title = group["title"]
-            x = list(range(0, len(group["values"])))  # @TODO: plot timestamps on x-tics
-            y = list(map(lambda v: v["value"], group["values"]))
+
+            # Limit scope size
+            targeted_plot_values = group["values"][-self.___max_scope_points :]
+            if len(targeted_plot_values) > max_targeted_plot_values:
+                max_targeted_plot_values = len(targeted_plot_values)
+
+            # Make axis
+            x = list(range(0, len(targeted_plot_values)))  # @TODO: plot timestamps on x-tics
+            y = list(map(lambda v: v["value"], targeted_plot_values))
 
             gnuplot_input = []
             for xx, yy in zip(x, y):
@@ -65,6 +67,8 @@ class PlotPrinter:
 
             plot_command_parts.append(f"'-' with linespoints title '{title}'")
             plot_data_parts.append("\n".join(gnuplot_input) + "\ne")
+
+            # Grap actual all input values for stats
             compinedValues.extend(group["values"])
 
         # Form the gnuplot command string
@@ -92,9 +96,16 @@ class PlotPrinter:
 
         self.___printer.print(plotDump)
 
+        #
         # Stats
+        #
+
+        # Set scope length for stats
+        self.___scopeSeconds = max((max_targeted_plot_values * sample_interval_secs) - sample_interval_secs, 0)
+
         stats = self.___get_calculated_plot_stats(compinedValues)
 
+        # Print stats
         self.___printFooterStats(stats)
         self.___printAdvFooterStatsLine1(stats)
         self.___printAdvFooterStatsLine2(stats)
@@ -108,48 +119,46 @@ class PlotPrinter:
         Print some stats
         """
 
-        # Line start
-        self.___printer.print(Configuration.view.left_margin_fill + " ", end=" ")
+        def get_stat_container(stat_name: str, stats: PlotScopeStats) -> str:
+            stat_line = ""
+            stat_line += self.___printer.print("[", end="", output_only_as_return_value=True)  # Container start
+            stat_line += self.___printer.print(
+                text=f"{stat_name.capitalize()}:", inline=True, colour="aqua", output_only_as_return_value=True
+            )
+            stat_line += self.___printer.print(
+                "Min:" + str(stats[stat_name]["min"]), end=" ", output_only_as_return_value=True
+            )
+            stat_line += self.___printer.print(
+                "Max:" + str(stats[stat_name]["max"]), end=" ", output_only_as_return_value=True
+            )
+            stat_line += self.___printer.print(
+                "Avg:" + "%.0f" % stats[stat_name]["average"], end="", output_only_as_return_value=True
+            )
+            stat_line += self.___printer.print("]", end=" ")  # Container end
+            return stat_line
 
-        # Hour stats
-        self.___printer.print("[", end="")  # Container start
-        self.___printer.print(text="Hour:", inline=True, colour="aqua")
-        self.___printer.print("Min:" + str(stats["hour"]["min"]), end=" ")
-        self.___printer.print("Max:" + str(stats["hour"]["max"]), end=" ")
-        self.___printer.print("Avg:" + "%.0f" % stats["hour"]["average"], end="")
-        self.___printer.print("]", end=" ")  # Container end
+        stat_lines = []
+        scopes = [
+            "scope",
+            "hour",
+            "week",
+            "month",
+            "year",
+        ]
 
-        # Week stats
-        self.___printer.print("[", end="")  # Container start
-        self.___printer.print(text="Day:", inline=True, colour="aqua")
-        self.___printer.print("Min:" + str(stats["day"]["min"]), end=" ")
-        self.___printer.print("Max:" + str(stats["day"]["max"]), end=" ")
-        self.___printer.print("Avg:" + "%.0f" % stats["day"]["average"], end="")
-        self.___printer.print("]", end=" ")  # Container end
+        # Omit priting when more recent/smalle time scope includes all the printable values
+        # -> when week and hour values are the same: print hour, omit week
+        for i in range(1, len(scopes) - 1):
+            scope = scopes[i]
+            previous_scope = scopes[i - 1]
+            if stats[scope]["count"] < stats[previous_scope]["count"]:
+                stat_lines.append(get_stat_container(scope, stats))
 
-        # line break
-        self.___printer.print(" ")
-        # Line start
-        self.___printer.print(Configuration.view.left_margin_fill + " ", end=" ")
+        line_groups = chunk_list(stat_lines, 2)
 
-        # Month stats
-        self.___printer.print("[", end="")  # Container start
-        self.___printer.print(text="Week:", inline=True, colour="aqua")
-        self.___printer.print("Min:" + str(stats["week"]["min"]), end=" ")
-        self.___printer.print("Max:" + str(stats["week"]["max"]), end=" ")
-        self.___printer.print("Avg:" + "%.0f" % stats["week"]["average"], end="")
-        self.___printer.print("]", end=" ")  # Container end
-
-        # Year stats
-        self.___printer.print("[", end="")  # Container start
-        self.___printer.print(text="Month:", inline=True, colour="aqua")
-        self.___printer.print("Min:" + str(stats["month"]["min"]), end=" ")
-        self.___printer.print("Max:" + str(stats["month"]["max"]), end=" ")
-        self.___printer.print("Avg:" + "%.0f" % stats["month"]["average"], end="")
-        self.___printer.print("]", end=" ")  # Container end
-
-        # line break
-        self.___printer.print(" ")
+        for line_group in line_groups:
+            self.___printer.print(Configuration.view.left_margin_fill + " ", end=" ")
+            self.___printer.print(" ".join(line_group))
 
     def ___printAdvFooterStatsLine1(self, stats: PlotScopeStats):
         """
@@ -163,9 +172,9 @@ class PlotPrinter:
         footerFirstLineText += "["  # Container start
 
         footerFirstLineText += "Scope: "
-        footerFirstLineText += "Min:" + str(stats["seconds"]["min"]) + " "
-        footerFirstLineText += "Max:" + str(stats["seconds"]["max"]) + " "
-        footerFirstLineText += "Avg:" + str(stats["seconds"]["average"])
+        footerFirstLineText += "Min:" + str(stats["scope"]["min"]) + " "
+        footerFirstLineText += "Max:" + str(stats["scope"]["max"]) + " "
+        footerFirstLineText += "Avg:" + str(stats["scope"]["average"])
 
         footerFirstLineText += "] "  # Container end
 
@@ -204,7 +213,7 @@ class PlotPrinter:
 
             # Sample rate
             footerSecondLineText += "["  # Container start
-            footerSecondLineText += "Sample rate:" + str(self.___samplingInterval) + "s"
+            footerSecondLineText += "Sample rate:" + str(self.___max_scope_points) + "s"
             footerSecondLineText += "] "  # Container end
 
             # Users per second
@@ -308,21 +317,21 @@ class PlotPrinter:
                 "sum": summarum,
             }
 
-        scopes = [
-            {"name": "seconds", "time_filter": f"{self.___scopeSeconds} secs"},
-            {"name": "hour", "time_filter": "1 hour"},
-            {"name": "day", "time_filter": "1 day"},
-            {"name": "week", "time_filter": "1 week"},
-            {"name": "month", "time_filter": "1 month"},
-            {"name": "year", "time_filter": "1 year"},
-        ]
+        scope_values = self.___filter_past_plot_values(current_values, f"{self.___scopeSeconds} secs")
+        year_values = self.___filter_past_plot_values(current_values, "1 year")
+        month_values = self.___filter_past_plot_values(year_values, "1 month")
+        week_values = self.___filter_past_plot_values(month_values, "1 week")
+        day_values = self.___filter_past_plot_values(week_values, "1 day")
+        hour_values = self.___filter_past_plot_values(day_values, "1 hour")
 
-        stats = {}
-        for scope in scopes:
-            stats[scope["name"]] = calculate_stats(
-                self.___filter_past_plot_values(current_values, scope["time_filter"]),
-            )
-        return stats
+        return {
+            "scope": calculate_stats(scope_values),
+            "year": calculate_stats(year_values),
+            "month": calculate_stats(month_values),
+            "week": calculate_stats(week_values),
+            "day": calculate_stats(day_values),
+            "hour": calculate_stats(hour_values),
+        }
 
     def ___filter_past_plot_values(self, values: List[PlotUnit], past_time_text: str) -> List[PlotUnit]:
         return list(

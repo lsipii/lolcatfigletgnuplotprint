@@ -38,7 +38,7 @@ def print_example():
                 ],
             },
         ],
-        output_as_return_value=True,
+        output_only_as_return_value=True,
     )
 
     lolcat_figlet_print(
@@ -53,7 +53,8 @@ def plot_print(
     value_groups: List[PlotPrinterValueGroup],
     width=75,
     height=17,
-    output_as_return_value: bool = False,
+    output_only_as_return_value: bool = False,
+    sample_interval_secs: int = 60,
 ) -> str:
     from .PlotPrinter import PlotPrinter
 
@@ -64,7 +65,8 @@ def plot_print(
         value_groups=value_groups,
         width=width,
         height=height,
-        output_as_return_value=output_as_return_value,
+        output_only_as_return_value=output_only_as_return_value,
+        sample_interval_secs=sample_interval_secs,
     )
 
 
@@ -74,7 +76,7 @@ def lolcat_figlet_print(
     description_text: str = None,
     attachements: List[PrinterAttachment] = [],
     priority: int = None,
-    output_as_return_value: bool = False,
+    output_only_as_return_value: bool = False,
     print_vertical_margins: bool = True,
 ) -> str:
     from .LolcatFigletPrinter import LolcatFigletPrinter
@@ -88,7 +90,7 @@ def lolcat_figlet_print(
         description_text=description_text,
         attachements=attachements,
         priority=priority,
-        output_as_return_value=output_as_return_value,
+        output_only_as_return_value=output_only_as_return_value,
         print_vertical_margins=print_vertical_margins,
     )
 
