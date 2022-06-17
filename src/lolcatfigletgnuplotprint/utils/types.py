@@ -17,6 +17,8 @@ class PlotStat(TypedDict):
     min: float
     max_stamp: int
     min_stamp: int
+    newest_stamp: int
+    oldest_stamp: int
     count: int
     average: float
 

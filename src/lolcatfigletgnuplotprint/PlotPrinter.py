@@ -296,6 +296,8 @@ class PlotPrinter:
             maximum = None
             min_stamp = 0
             max_stamp = 0
+            newest_stamp = 0
+            oldest_stamp = 0
 
             # Calc average, min and max
             if count > 0:
@@ -308,6 +310,11 @@ class PlotPrinter:
                     if minimum is None or value < minimum:
                         minimum = value
                         min_stamp = v["timestamp"]
+
+                    if newest_stamp == 0 or newest_stamp < v["timestamp"]:
+                        newest_stamp = v["timestamp"]
+                    if oldest_stamp == 0 or oldest_stamp > v["timestamp"]:
+                        oldest_stamp = v["timestamp"]
                 average = math.ceil(float(summarum / count))
 
             return {
@@ -318,6 +325,8 @@ class PlotPrinter:
                 "count": count,
                 "average": average,
                 "sum": summarum,
+                "newest_stamp": min_stamp,
+                "oldest_stamp": max_stamp,
             }
 
         scope_values = current_values[-self.___max_scope_points :]
@@ -350,4 +359,4 @@ class PlotPrinter:
         )
 
     def ___get_scope_seconds(self, stats: PlotScopeStats) -> int:
-        return int(stats["scope"]["max_stamp"]) - int(stats["scope"]["min_stamp"])
+        return int(stats["scope"]["newest_stamp"]) - int(stats["scope"]["oldest_stamp"])
