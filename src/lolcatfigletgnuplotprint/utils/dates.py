@@ -10,6 +10,11 @@ def get_datetime_now():
     return datetime.datetime.now()
 
 
+def get_datetime_ago(days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0):
+    td = datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+    return get_datetime_now() - td
+
+
 def format_datetime(dt, include_time: bool = True, include_ms: bool = False) -> str:
     output = str(dt.isoformat())
 

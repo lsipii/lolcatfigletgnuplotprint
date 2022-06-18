@@ -7,7 +7,13 @@ from lolcatfigletgnuplotprint.utils.data_structures import singleton
 from lolcatfigletgnuplotprint.utils.transformations import chunk_list
 
 from .utils.CommandlinePrinter import CommandlinePrinter
-from .utils.dates import datetime_to_days_hours_minutes, datetime_to_text, get_datetime_now, parse_past_date_text
+from .utils.dates import (
+    datetime_to_days_hours_minutes,
+    datetime_to_text,
+    get_datetime_ago,
+    get_datetime_now,
+    parse_past_date_text,
+)
 from .utils.runtime import get_client_public_ip_address
 from .utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
 from .utils.Configuration import Configuration
@@ -136,7 +142,6 @@ class PlotPrinter:
 
         stat_lines = []
         scopes = [
-            "scope",
             "hour",
             "three_hours",
             "six_hours",
@@ -147,10 +152,17 @@ class PlotPrinter:
 
         # Omit priting when more recent/smalle time scope includes all the printable values
         # -> when week and hour values are the same: print hour, omit week
-        for i in range(1, len(scopes) - 1):
+        for i in range(0, len(scopes) - 1):
             scope = scopes[i]
-            previous_scope = scopes[i - 1]
-            if stats[scope]["count"] < stats[previous_scope]["count"]:
+
+            add_scope_to_stats = False
+            if i == 0:
+                add_scope_to_stats = stats[scope]["oldest_stamp"] <= get_datetime_ago(hours=1).timestamp()
+            else:
+                previous_scope = scopes[i - 1]
+                if stats[scope]["count"] < stats[previous_scope]["count"]:
+                    add_scope_to_stats = True
+            if add_scope_to_stats:
                 stat_lines.append(get_stat_container(scope, stats))
 
         line_groups = chunk_list(stat_lines, 2)
@@ -311,9 +323,9 @@ class PlotPrinter:
                         minimum = value
                         min_stamp = v["timestamp"]
 
-                    if newest_stamp == 0 or newest_stamp < v["timestamp"]:
+                    if newest_stamp == 0 or newest_stamp <= v["timestamp"]:
                         newest_stamp = v["timestamp"]
-                    if oldest_stamp == 0 or oldest_stamp > v["timestamp"]:
+                    if oldest_stamp == 0 or oldest_stamp >= v["timestamp"]:
                         oldest_stamp = v["timestamp"]
                 average = math.ceil(float(summarum / count))
 
@@ -325,8 +337,8 @@ class PlotPrinter:
                 "count": count,
                 "average": average,
                 "sum": summarum,
-                "newest_stamp": min_stamp,
-                "oldest_stamp": max_stamp,
+                "newest_stamp": newest_stamp,
+                "oldest_stamp": oldest_stamp,
             }
 
         scope_values = current_values[-self.___max_scope_points :]
