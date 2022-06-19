@@ -15,12 +15,14 @@ class PlotUnit(TypedDict):
 class PlotStat(TypedDict):
     max: float
     min: float
+    count: int
+    average: float
+    sum: float
     max_stamp: int
     min_stamp: int
     newest_stamp: int
     oldest_stamp: int
-    count: int
-    average: float
+    has_older_values: bool
 
 
 class PlotScopeStats(TypedDict):
@@ -28,10 +30,11 @@ class PlotScopeStats(TypedDict):
     hour: PlotStat
     three_hours: PlotStat
     six_hours: PlotStat
+    twelve_hours: PlotStat
     day: PlotStat
     week: PlotStat
-    month: PlotStat
-    year: PlotStat
+    # month: PlotStat
+    # year: PlotStat
 
 
 class PlotPrinterValueGroup(TypedDict):

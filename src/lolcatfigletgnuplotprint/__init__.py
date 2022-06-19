@@ -54,6 +54,7 @@ def plot_print(
     width=75,
     height=17,
     output_only_as_return_value: bool = False,
+    max_scope_points: int = 30,
 ) -> str:
     from .PlotPrinter import PlotPrinter
 
@@ -65,6 +66,7 @@ def plot_print(
         width=width,
         height=height,
         output_only_as_return_value=output_only_as_return_value,
+        max_scope_points=max_scope_points,
     )
 
 

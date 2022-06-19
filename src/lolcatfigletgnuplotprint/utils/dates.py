@@ -15,6 +15,13 @@ def get_datetime_ago(days: int = 0, hours: int = 0, minutes: int = 0, seconds: i
     return get_datetime_now() - td
 
 
+def get_timestamp_ago(days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0, include_ms: bool = False):
+    timestampAgo = get_datetime_ago(days, hours, minutes, seconds).timestamp()
+    if include_ms:
+        return timestampAgo
+    return int(timestampAgo)
+
+
 def format_datetime(dt, include_time: bool = True, include_ms: bool = False) -> str:
     output = str(dt.isoformat())
 
@@ -48,7 +55,10 @@ def parse_past_date_text(past_date_text: str, include_time: bool = True, include
         date = datetime.datetime.now() - relativedelta(days=1)
         return format_datetime(date, include_time=include_time, include_ms=include_ms)
     elif dateTextParts[1].lower() in ["sec", "secs", "second", "seconds", "s"]:
-        date = datetime.datetime.now() - relativedelta(hours=int(dateTextParts[0]))
+        date = datetime.datetime.now() - relativedelta(seconds=int(dateTextParts[0]))
+        return format_datetime(date, include_time=include_time, include_ms=include_ms)
+    elif dateTextParts[1].lower() in ["min", "mins", "minute", "minutes"]:
+        date = datetime.datetime.now() - relativedelta(minutes=int(dateTextParts[0]))
         return format_datetime(date, include_time=include_time, include_ms=include_ms)
     elif dateTextParts[1].lower() in ["hour", "hours", "hr", "hrs", "h"]:
         date = datetime.datetime.now() - relativedelta(hours=int(dateTextParts[0]))

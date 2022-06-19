@@ -10,9 +10,8 @@ from .utils.CommandlinePrinter import CommandlinePrinter
 from .utils.dates import (
     datetime_to_days_hours_minutes,
     datetime_to_text,
-    get_datetime_ago,
     get_datetime_now,
-    parse_past_date_text,
+    get_timestamp_ago,
 )
 from .utils.runtime import get_client_public_ip_address
 from .utils.types import PlotPrinterValueGroup, PlotScopeStats, PlotUnit, PlotStat
@@ -21,11 +20,11 @@ from .utils.Configuration import Configuration
 
 @singleton
 class PlotPrinter:
+    ___max_scope_points: int  # How many plot points plots
+
     def __init__(self):
         datetimeNow = get_datetime_now()
         self.___printer = CommandlinePrinter()
-        self.___max_scope_points = 30
-
         self.___ip_address = None
         if Configuration.plotter.show_ip_address:
             self.___ip_address = get_client_public_ip_address()
@@ -38,6 +37,7 @@ class PlotPrinter:
         width=75,
         height=19,
         output_only_as_return_value: bool = False,
+        max_scope_points: int = 30,
     ) -> str:
         """
         Prints the history data as a nice xy-plot
@@ -46,6 +46,7 @@ class PlotPrinter:
         # Init
         self.___dates["now_at"] = get_datetime_now()
         self.___printer.set_output_to_buffer_mode(output_only_as_return_value)
+        self.___max_scope_points = max_scope_points
         compinedValues = []
 
         # Plot
@@ -54,7 +55,8 @@ class PlotPrinter:
         fig = tpl.figure(padding=1)
 
         for group in value_groups:
-            title = group["title"]
+            # Grap actual all input values for stats
+            compinedValues.extend(group["values"])
 
             # Limit scope size
             targeted_plot_values = group["values"][-self.___max_scope_points :]
@@ -67,11 +69,8 @@ class PlotPrinter:
             for xx, yy in zip(x, y):
                 gnuplot_input.append(f"{xx:e} {yy:e}")
 
-            plot_command_parts.append(f"'-' with linespoints title '{title}'")
+            plot_command_parts.append(f"'-' with linespoints title '{group['title']}'")
             plot_data_parts.append("\n".join(gnuplot_input) + "\ne")
-
-            # Grap actual all input values for stats
-            compinedValues.extend(group["values"])
 
         # Form the gnuplot command string
         extraArgs = []
@@ -119,51 +118,42 @@ class PlotPrinter:
         Print some stats
         """
 
-        def get_stat_container(stat_name: str, stats: PlotScopeStats) -> str:
+        def get_stat_container(stat_name: str, stats: PlotScopeStats = None) -> str:
+
+            stat = stats[stat_name] if stats is not None else {"min": 0, "max": 0, "average": 0}
+            label_colour = "aqua" if stats is not None else "gray"
+
             stat_line = ""
             stat_line += self.___printer.print("[", end="", output_only_as_return_value=True)  # Container start
             stat_line += self.___printer.print(
                 text=f"{stat_name.replace('_', ' ').capitalize()}:",
                 inline=True,
-                colour="aqua",
+                colour=label_colour,
                 output_only_as_return_value=True,
             )
+            stat_line += self.___printer.print("Min:" + str(stat["min"]), end=" ", output_only_as_return_value=True)
+            stat_line += self.___printer.print("Max:" + str(stat["max"]), end=" ", output_only_as_return_value=True)
             stat_line += self.___printer.print(
-                "Min:" + str(stats[stat_name]["min"]), end=" ", output_only_as_return_value=True
-            )
-            stat_line += self.___printer.print(
-                "Max:" + str(stats[stat_name]["max"]), end=" ", output_only_as_return_value=True
-            )
-            stat_line += self.___printer.print(
-                "Avg:" + "%.0f" % stats[stat_name]["average"], end="", output_only_as_return_value=True
+                "Avg:" + "%.0f" % stat["average"], end="", output_only_as_return_value=True
             )
             stat_line += self.___printer.print("]", end=" ", output_only_as_return_value=True)  # Container end
             return stat_line
 
         stat_lines = []
-        scopes = [
-            "hour",
-            "three_hours",
-            "six_hours",
-            "week",
-            "month",
-            "year",
+        scope_groups = [
+            ("hour", "three_hours"),
+            ("six_hours", "twelve_hours"),
+            ("day", "week"),
         ]
 
-        # Omit priting when more recent/smalle time scope includes all the printable values
-        # -> when week and hour values are the same: print hour, omit week
-        for i in range(0, len(scopes) - 1):
-            scope = scopes[i]
-
-            add_scope_to_stats = False
-            if i == 0:
-                add_scope_to_stats = stats[scope]["oldest_stamp"] <= get_datetime_ago(hours=1).timestamp()
-            else:
-                previous_scope = scopes[i - 1]
-                if stats[scope]["count"] < stats[previous_scope]["count"]:
-                    add_scope_to_stats = True
-            if add_scope_to_stats:
-                stat_lines.append(get_stat_container(scope, stats))
+        for scope_group in scope_groups:
+            scopeA, scopeB = scope_group
+            if stats[scopeA]["has_older_values"]:
+                stat_lines.append(get_stat_container(scopeA, stats))
+                if stats[scopeB]["has_older_values"]:
+                    stat_lines.append(get_stat_container(scopeB, stats))
+                else:
+                    stat_lines.append(get_stat_container(scopeB))
 
         line_groups = chunk_list(stat_lines, 2)
 
@@ -227,7 +217,7 @@ class PlotPrinter:
 
             # Sample rate
             footerSecondLineText += "["  # Container start
-            footerSecondLineText += "Sample rate:" + str(self.___max_scope_points) + "s"
+            footerSecondLineText += "Sample rate:" + str(self.___max_scope_points) + "p"
             footerSecondLineText += "] "  # Container end
 
             # Users per second
@@ -242,10 +232,10 @@ class PlotPrinter:
             footerSecondLineText += "] "  # Container end
 
             # History peak time
-            if stats["month"]["max_stamp"] > 0:
+            if stats["month"]["max_at_stamp"] > 0:
                 footerSecondLineText += "["  # Container start
                 footerSecondLineText += "HPT: " + datetime_to_text(
-                    datetime.datetime.fromtimestamp(stats["month"]["max_stamp"])
+                    datetime.datetime.fromtimestamp(stats["month"]["max_at_stamp"])
                 )
                 footerSecondLineText += "] "  # Container end
 
@@ -298,30 +288,30 @@ class PlotPrinter:
         Compiles stats obj
         """
 
-        def calculate_stats(plot_values: List[PlotUnit]) -> PlotStat:
+        def calculate_stats(filtered_plot_values: List[PlotUnit], all_values: List[PlotUnit]) -> PlotStat:
 
             # Increase counters
-            count = len(plot_values)
+            count = len(filtered_plot_values)
             summarum = 0
             average = 0
             minimum = None
             maximum = None
-            min_stamp = 0
-            max_stamp = 0
+            min_at_stamp = 0
+            max_at_stamp = 0
             newest_stamp = 0
             oldest_stamp = 0
 
             # Calc average, min and max
             if count > 0:
-                for v in plot_values:
+                for v in filtered_plot_values:
                     value = v["value"]
                     summarum += value
                     if maximum is None or value > maximum:
                         maximum = value
-                        max_stamp = v["timestamp"]
+                        max_at_stamp = v["timestamp"]
                     if minimum is None or value < minimum:
                         minimum = value
-                        min_stamp = v["timestamp"]
+                        min_at_stamp = v["timestamp"]
 
                     if newest_stamp == 0 or newest_stamp <= v["timestamp"]:
                         newest_stamp = v["timestamp"]
@@ -332,40 +322,40 @@ class PlotPrinter:
             return {
                 "max": maximum if maximum is not None else 0,
                 "min": minimum if minimum is not None else 0,
-                "min_stamp": min_stamp,
-                "max_stamp": max_stamp,
+                "min_at_stamp": min_at_stamp,
+                "max_at_stamp": max_at_stamp,
                 "count": count,
                 "average": average,
                 "sum": summarum,
                 "newest_stamp": newest_stamp,
                 "oldest_stamp": oldest_stamp,
+                "has_older_values": count < len(all_values),
             }
 
         scope_values = current_values[-self.___max_scope_points :]
-        year_values = self.___filter_past_plot_values(current_values, "1 year")
-        month_values = self.___filter_past_plot_values(year_values, "1 month")
-        week_values = self.___filter_past_plot_values(month_values, "1 week")
-        day_values = self.___filter_past_plot_values(week_values, "1 day")
-        six_hours_values = self.___filter_past_plot_values(day_values, "6 hours")
-        three_hours_values = self.___filter_past_plot_values(six_hours_values, "3 hours")
-        hour_values = self.___filter_past_plot_values(three_hours_values, "1 hour")
+        week_values = self.___filter_past_plot_values(current_values, days=7)
+        day_values = self.___filter_past_plot_values(week_values, days=1)
+        twelve_hours_values = self.___filter_past_plot_values(day_values, hours=12)
+        six_hours_values = self.___filter_past_plot_values(twelve_hours_values, hours=6)
+        three_hours_values = self.___filter_past_plot_values(six_hours_values, hours=3)
+        hour_values = self.___filter_past_plot_values(three_hours_values, hours=1)
 
         return {
-            "scope": calculate_stats(scope_values),
-            "year": calculate_stats(year_values),
-            "month": calculate_stats(month_values),
-            "week": calculate_stats(week_values),
-            "day": calculate_stats(day_values),
-            "six_hours": calculate_stats(six_hours_values),
-            "three_hours": calculate_stats(three_hours_values),
-            "hour": calculate_stats(hour_values),
+            "scope": calculate_stats(scope_values, current_values),
+            "week": calculate_stats(week_values, current_values),
+            "day": calculate_stats(day_values, current_values),
+            "twelve_hours": calculate_stats(twelve_hours_values, current_values),
+            "six_hours": calculate_stats(six_hours_values, current_values),
+            "three_hours": calculate_stats(three_hours_values, current_values),
+            "hour": calculate_stats(hour_values, current_values),
         }
 
-    def ___filter_past_plot_values(self, values: List[PlotUnit], past_time_text: str) -> List[PlotUnit]:
+    def ___filter_past_plot_values(
+        self, values: List[PlotUnit], days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0
+    ) -> List[PlotUnit]:
         return list(
             filter(
-                lambda v: v["timestamp"]
-                >= datetime.datetime.timestamp(datetime.datetime.fromisoformat(parse_past_date_text(past_time_text))),
+                lambda v: v["timestamp"] >= get_timestamp_ago(days, hours, minutes, seconds),
                 values,
             )
         )
