@@ -93,8 +93,8 @@ class PlotPrinter:
         plotDump = plotDump.replace("B", self.___printer.wrap_text_with_colour(text="x", colour="grey"))
 
         # Stylify third plot line
-        plotDump = plotDump.replace("$", self.___printer.wrap_text_with_colour(text="-", colour="grey"))
-        plotDump = plotDump.replace("C", self.___printer.wrap_text_with_colour(text="o", colour="grey"))
+        plotDump = plotDump.replace("$", self.___printer.wrap_text_with_colour(text="-", colour="magenta"))
+        plotDump = plotDump.replace("C", self.___printer.wrap_text_with_colour(text="o", colour="magenta"))
 
         # add a plot margin-left
         plotDump = plotDump.replace("\n", "\n" + " ")
